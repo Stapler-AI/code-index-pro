@@ -2214,7 +2214,7 @@ nodes:
     title: "Review: Index-driven task generator"
     type: rev
     milestone: M8
-    status: pending
+    status: approved
     implements: ["Review gate for benchmark.md §Task generation (source 2)"]
     spec: ["benchmark.md#task-generation"]
     depends_on: [DEV-908, QA-908]
@@ -2224,7 +2224,7 @@ nodes:
     title: "Reporting: bench report"
     type: dev
     milestone: M8
-    status: pending
+    status: done
     implements: ["benchmark.md §Results & reporting"]
     spec: ["benchmark.md#results--reporting"]
     depends_on: [DEV-906]
@@ -2244,7 +2244,7 @@ nodes:
     title: "Tests: report correctness"
     type: qa
     milestone: M8
-    status: pending
+    status: done
     implements: ["benchmark.md §Results & reporting acceptance"]
     depends_on: [DEV-909, QA-000]
     scope: >-

@@ -1,0 +1,5 @@
+# benchmark.md: everything under results/ is scratch (runs.jsonl, preserved
+# workspaces) EXCEPT committed dated markdown reports.
+*
+!.gitignore
+!*.md

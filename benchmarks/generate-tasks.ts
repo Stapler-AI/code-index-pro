@@ -1,4 +1,5 @@
 import { execFileSync } from "node:child_process";
+import { createHash } from "node:crypto";
 import type { Database } from "better-sqlite3";
 import type { BenchTask, Category } from "./tasks";
 import { TARGETS } from "./targets";
@@ -156,8 +157,11 @@ export function generateArchitectureTasks(db: Database, targetName: string): Ben
   );
   return files.map((f) => {
     const modules = (importsStmt.all(f.path) as { mod: string }[]).map((m) => m.mod);
+    // A path hash suffix keeps ids collision-proof (two paths can sanitize
+    // to the same slug, e.g. a/b.ts and a-b.ts).
+    const slug = `${f.path.replace(/[^a-zA-Z0-9]/g, "_")}-${createHash("sha1").update(f.path).digest("hex").slice(0, 8)}`;
     return {
-      id: `gen-arch-${targetName}-${f.path.replace(/[^a-zA-Z0-9]/g, "_")}`,
+      id: `gen-arch-${targetName}-${slug}`,
       category: "architecture" as Category,
       style: "qa" as const,
       target: targetName,
