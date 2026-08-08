@@ -38,7 +38,42 @@ CREATE INDEX idx_chunks_file_id   ON code_chunks(file_id);
 CREATE INDEX idx_chunks_node_type ON code_chunks(node_type);
 `;
 
+/** Graph tables (new): symbols and edges (schema.md#graph-tables-new). */
+export const GRAPH_TABLES_DDL = `
+CREATE TABLE symbols (
+  id         INTEGER PRIMARY KEY,
+  file_id    INTEGER NOT NULL REFERENCES indexed_files(id) ON DELETE CASCADE,
+  chunk_id   INTEGER REFERENCES code_chunks(id) ON DELETE SET NULL,
+  name       TEXT NOT NULL,
+  kind       TEXT NOT NULL,     -- function|class|method|variable|interface|type_alias|enum|module
+  signature  TEXT,              -- one-line, token-cheap: 'parseFile(path, opts) → Chunk[]'
+  start_line INTEGER NOT NULL,
+  end_line   INTEGER NOT NULL,
+  exported   INTEGER NOT NULL DEFAULT 0
+);
+
+CREATE INDEX idx_symbols_name ON symbols(name);
+CREATE INDEX idx_symbols_file ON symbols(file_id);
+
+CREATE TABLE edges (
+  id               INTEGER PRIMARY KEY,
+  source_file_id   INTEGER NOT NULL REFERENCES indexed_files(id) ON DELETE CASCADE,
+  source_symbol_id INTEGER REFERENCES symbols(id) ON DELETE CASCADE,  -- NULL = file/module scope
+  edge_type        TEXT NOT NULL,   -- calls|imports|exports|references|extends|implements
+  target_symbol_id INTEGER REFERENCES symbols(id) ON DELETE SET NULL, -- NULL = unresolved
+  target_name      TEXT NOT NULL,   -- raw identifier as written; always populated
+  target_module    TEXT,            -- import specifier: './db', 'react'
+  line             INTEGER NOT NULL
+);
+
+CREATE INDEX idx_edges_source      ON edges(source_symbol_id);
+CREATE INDEX idx_edges_target      ON edges(target_symbol_id);
+CREATE INDEX idx_edges_target_name ON edges(target_name);
+CREATE INDEX idx_edges_type        ON edges(edge_type);
+`;
+
 /** Apply the schema to a fresh database. (Interim entry point until DEV-106's migration runner owns this DDL as migration 1.) */
 export function applySchema(db: Database): void {
   db.exec(CORE_TABLES_DDL);
+  db.exec(GRAPH_TABLES_DDL);
 }
