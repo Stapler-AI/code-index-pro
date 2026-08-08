@@ -48,8 +48,21 @@ export interface StructuralQuery {
   lang?: string;
   /** Paths relative to the repo root; defaults to the whole tree. */
   paths?: string[];
+  /**
+   * Index-prefilter candidate files (FR-502). An empty list means "nothing
+   * qualifies" and returns no results. Small lists are passed as spawn argv;
+   * lists beyond PREFILTER_ARGV_CAP run whole-tree and filter matches
+   * afterwards — same results, bounded argv (DEV-802 audit). Edge case: the
+   * whole-tree walk honors ignore rules that explicit argv bypasses, so a
+   * tracked-but-ignored candidate can match at <=cap and vanish beyond it
+   * (narrow, fail-safe).
+   */
+  candidates?: string[];
   limit?: number;
 }
+
+/** Above this, candidate lists stop being argv and become a result filter. */
+export const PREFILTER_ARGV_CAP = 100;
 
 /** Envelope-shaped match: no id (live working tree, not an index row). */
 export interface StructuralMatch {
@@ -145,7 +158,7 @@ export function structuralCandidates(db: Database, options: PrefilterOptions): s
  * Throws StructuralSearchError for invalid input or an ast-grep failure.
  */
 export function searchStructural(repoRoot: string, query: StructuralQuery): CappedResults<StructuralMatch> {
-  const { pattern, rule, lang, paths } = query;
+  const { pattern, rule, lang, paths, candidates } = query;
   const limit = query.limit ?? STRUCTURAL_DEFAULT_LIMIT;
   if ((pattern === undefined) === (rule === undefined)) {
     throw new StructuralSearchError("provide exactly one of pattern or rule");
@@ -153,10 +166,18 @@ export function searchStructural(repoRoot: string, query: StructuralQuery): Capp
   if (pattern !== undefined && !lang) {
     throw new StructuralSearchError("lang is required with pattern");
   }
+  if (paths !== undefined && candidates !== undefined) {
+    throw new StructuralSearchError("paths and candidates are mutually exclusive");
+  }
+  // An empty candidate set means no file qualifies — never the whole tree.
+  if (candidates !== undefined && candidates.length === 0) {
+    return { results: [], truncated: false };
+  }
 
   checkAstGrepVersion();
 
-  const targets = paths && paths.length > 0 ? paths : ["."];
+  const candidatesAsArgv = candidates !== undefined && candidates.length <= PREFILTER_ARGV_CAP;
+  const targets = paths && paths.length > 0 ? paths : candidatesAsArgv ? candidates! : ["."];
   const args =
     pattern !== undefined
       ? ["run", "--pattern", pattern, "--lang", lang!, "--json", ...targets]
@@ -186,13 +207,15 @@ export function searchStructural(repoRoot: string, query: StructuralQuery): Capp
   }
 
   const matches = JSON.parse(stdout) as AstGrepJsonMatch[];
-  return capResults(
-    matches.map((m) => ({
-      path: m.file,
-      // ast-grep lines are 0-based; the envelope is 1-based.
-      lines: [m.range.start.line + 1, m.range.end.line + 1] as [number, number],
-      preview: oneLine(m.text),
-    })),
-    limit,
-  );
+  let mapped = matches.map((m) => ({
+    path: m.file,
+    // ast-grep lines are 0-based; the envelope is 1-based.
+    lines: [m.range.start.line + 1, m.range.end.line + 1] as [number, number],
+    preview: oneLine(m.text),
+  }));
+  if (candidates !== undefined && !candidatesAsArgv) {
+    const candidateSet = new Set(candidates);
+    mapped = mapped.filter((m) => candidateSet.has(m.path));
+  }
+  return capResults(mapped, limit);
 }

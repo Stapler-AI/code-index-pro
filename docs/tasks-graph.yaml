@@ -1704,7 +1704,7 @@ nodes:
     title: "Limit & truncation audit"
     type: dev
     milestone: M7
-    status: in_progress
+    status: done
     implements: ["FR-404/FR-603 across the full surface"]
     depends_on: [DEV-604]
     verified_by: QA-802
@@ -1718,7 +1718,7 @@ nodes:
     title: "Tests: exhaustive cap conformance"
     type: qa
     milestone: M7
-    status: pending
+    status: done
     implements: ["PRD §4 token-efficiency metric (supporting)"]
     depends_on: [DEV-802, QA-000]
     scope: >-
@@ -1730,7 +1730,7 @@ nodes:
     title: "Review: Limit & truncation audit"
     type: rev
     milestone: M7
-    status: pending
+    status: approved
     implements: ["Review gate for FR-404/FR-603 across the full surface"]
     depends_on: [DEV-802, QA-802]
     done_when: "Review approved with no unresolved findings."
@@ -1739,7 +1739,7 @@ nodes:
     title: "Dogfood: self-index"
     type: dev
     milestone: M7
-    status: pending
+    status: done
     implements: ["PRD §4 dogfood metric"]
     depends_on: [DEV-704, DEV-503]
     verified_by: QA-803
@@ -1754,7 +1754,7 @@ nodes:
     title: "Tests: decision-matrix answers on self"
     type: qa
     milestone: M7
-    status: pending
+    status: done
     implements: ["PRD §4 (the tool indexes its own repository and answers the decision-matrix questions correctly)"]
     depends_on: [DEV-803, QA-000]
     scope: >-
@@ -1766,7 +1766,7 @@ nodes:
     title: "Review: Dogfood: self-index"
     type: rev
     milestone: M7
-    status: pending
+    status: approved
     implements: ["Review gate for PRD §4 dogfood metric"]
     depends_on: [DEV-803, QA-803]
     done_when: "Review approved with no unresolved findings."
@@ -1775,7 +1775,7 @@ nodes:
     title: "Worked-example token budget"
     type: dev
     milestone: M7
-    status: pending
+    status: in_progress
     implements: ["PRD §4 token-efficiency metric"]
     spec: ["mcp-server.md#example-agent-session"]
     depends_on: [DEV-803]

@@ -231,7 +231,7 @@ const searchStructuralTool: ToolDefinition = {
 
     // FR-502: opt-in index prefilter computes the candidate file list; the
     // match itself still parses the live working tree.
-    let candidatePathList = paths as string[] | undefined;
+    let candidates: string[] | undefined;
     if (prefilterLanguage === true || prefilterFts !== undefined) {
       if (paths !== undefined) {
         throw new ToolError("paths and prefilter_* are mutually exclusive — pass one scope mechanism");
@@ -240,7 +240,7 @@ const searchStructuralTool: ToolDefinition = {
         throw new ToolError("prefilter_language requires lang");
       }
       try {
-        candidatePathList = structuralCandidates(ctx.db, {
+        candidates = structuralCandidates(ctx.db, {
           language: prefilterLanguage === true ? lang : undefined,
           ftsQuery: prefilterFts,
         });
@@ -251,7 +251,7 @@ const searchStructuralTool: ToolDefinition = {
         }
         throw error;
       }
-      if (candidatePathList.length === 0) {
+      if (candidates.length === 0) {
         return { results: [], truncated: false };
       }
     }
@@ -261,7 +261,8 @@ const searchStructuralTool: ToolDefinition = {
         pattern: optionalString(args, "pattern"),
         rule: optionalString(args, "rule"),
         lang,
-        paths: candidatePathList,
+        paths: paths as string[] | undefined,
+        candidates,
         limit: optionalPositiveInt(args, "limit"),
       });
       return { results, truncated };
