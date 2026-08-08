@@ -1,0 +1,4 @@
+# Pinned OSS clones are materialized locally (targets.ts ensureCache),
+# never committed.
+*
+!.gitignore

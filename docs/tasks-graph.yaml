@@ -1861,7 +1861,7 @@ nodes:
     title: "Benchmark scaffolding: task registry & targets"
     type: dev
     milestone: M8
-    status: pending
+    status: done
     implements: ["benchmark.md §Task model", "benchmark.md §Targets & fixtures", "benchmark.md §Directory layout"]
     spec: ["benchmark.md#task-model", "benchmark.md#targets--fixtures", "benchmark.md#directory-layout"]
     depends_on: [QA-000]
@@ -1882,7 +1882,7 @@ nodes:
     title: "Tests: registry validation & target materialization"
     type: qa
     milestone: M8
-    status: pending
+    status: done
     implements: ["benchmark.md §Task model acceptance (typed, validated at load)"]
     depends_on: [DEV-901, QA-000]
     scope: >-
@@ -1906,7 +1906,7 @@ nodes:
     title: "Deterministic graders & edit-tier checks"
     type: dev
     milestone: M8
-    status: pending
+    status: in_progress
     implements: ["benchmark.md §Two tiers, two grading families", "benchmark.md §Grading & judges (rungs 1-2)"]
     spec: ["benchmark.md#two-tiers-two-grading-families", "benchmark.md#grading--judges"]
     depends_on: [DEV-901]

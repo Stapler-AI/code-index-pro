@@ -24,7 +24,8 @@ const findSymbol = (db: Database, name: string) => graph.findSymbol(db, name).re
 
 const ENVELOPE_KEYS = new Set(["path", "lines", "preview", "id", "resolved"]);
 
-function expectEnvelope(envelope: Record<string, unknown>): void {
+function expectEnvelope(input: object): void {
+  const envelope = input as Record<string, unknown>;
   for (const key of Object.keys(envelope)) {
     expect(ENVELOPE_KEYS).toContain(key);
   }
