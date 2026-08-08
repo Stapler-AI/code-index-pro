@@ -930,7 +930,7 @@ nodes:
     title: "Symbol extraction"
     type: dev
     milestone: M3
-    status: pending
+    status: done
     implements: [FR-302]
     spec: ["ast-graph.md#node-model"]
     depends_on: [DEV-301]
@@ -948,7 +948,7 @@ nodes:
     title: "Tests: symbol rows"
     type: qa
     milestone: M3
-    status: pending
+    status: done
     implements: ["FR-302 / FR-300 acceptance (extracted symbols match expected rows)"]
     depends_on: [DEV-302, QA-000]
     scope: >-
@@ -961,7 +961,7 @@ nodes:
     title: "Review: Symbol extraction"
     type: rev
     milestone: M3
-    status: pending
+    status: approved
     implements: ["Review gate for FR-302"]
     spec: ["ast-graph.md#node-model"]
     depends_on: [DEV-302, QA-302]

@@ -81,8 +81,10 @@ export function parseSource(language: Language, content: string): Parser.Tree {
 /**
  * tree-sitter string indexes are UTF-16 code units; the schema stores byte
  * offsets usable to slice the raw file. For pure-ASCII sources they coincide.
+ * Exported so symbol extraction (FR-302) maps nodes to chunks by identical
+ * byte keys.
  */
-function makeByteOffset(content: string): (charIndex: number) => number {
+export function makeByteOffset(content: string): (charIndex: number) => number {
   if (Buffer.byteLength(content) === content.length) return (i) => i;
   return (i) => Buffer.byteLength(content.slice(0, i));
 }
