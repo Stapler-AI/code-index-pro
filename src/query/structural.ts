@@ -24,6 +24,21 @@ const PREVIEW_CAP_CHARS = 200;
 
 export class StructuralSearchError extends Error {}
 
+/**
+ * FR-503: ast-grep is a runtime prerequisite for search_structural ONLY —
+ * never a hard install dependency (it appears nowhere in package.json). Its
+ * absence degrades this one tool with a distinguishable error; every other
+ * tool keeps working.
+ */
+export const MISSING_BINARY_MESSAGE =
+  "missing_prerequisite: ast-grep — search_structural requires the ast-grep binary, which was not found on PATH. " +
+  "Install it with `npm install -g @ast-grep/cli` or `brew install ast-grep`, then retry. " +
+  "No other tool needs it.";
+
+function isMissingBinary(error: unknown): boolean {
+  return (error as { code?: string }).code === "ENOENT";
+}
+
 export interface StructuralQuery {
   /** Single-node pattern (ast-grep run). Mutually exclusive with rule. */
   pattern?: string;
@@ -71,7 +86,13 @@ let versionChecked = false;
 /** Verify the binary meets the pin; cached after the first success. */
 export function checkAstGrepVersion(): void {
   if (versionChecked) return;
-  const output = execFileSync("ast-grep", ["--version"], { encoding: "utf8" });
+  let output: string;
+  try {
+    output = execFileSync("ast-grep", ["--version"], { encoding: "utf8" });
+  } catch (error) {
+    if (isMissingBinary(error)) throw new StructuralSearchError(MISSING_BINARY_MESSAGE);
+    throw error;
+  }
   const found = parseVersion(output);
   const min = parseVersion(MIN_AST_GREP_VERSION)!;
   if (!found || !versionAtLeast(found, min)) {
@@ -151,6 +172,8 @@ export function searchStructural(repoRoot: string, query: StructuralQuery): Capp
       stdio: ["ignore", "pipe", "pipe"],
     });
   } catch (error) {
+    // Binary vanished after the cached version check.
+    if (isMissingBinary(error)) throw new StructuralSearchError(MISSING_BINARY_MESSAGE);
     // `run` exits 1 grep-style when nothing matched, still printing "[]" —
     // valid JSON on stdout means a completed (empty) search, not a failure.
     const failedStdout = (error as { stdout?: string }).stdout?.toString() ?? "";

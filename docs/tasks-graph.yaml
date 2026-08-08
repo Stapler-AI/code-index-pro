@@ -1617,7 +1617,7 @@ nodes:
     title: "Missing-binary handling"
     type: dev
     milestone: M6
-    status: pending
+    status: done
     implements: [FR-503]
     depends_on: [DEV-501]
     verified_by: QA-503
@@ -1632,7 +1632,7 @@ nodes:
     title: "Tests: graceful degradation"
     type: qa
     milestone: M6
-    status: pending
+    status: done
     implements: ["FR-503 / FR-500 acceptance (with the binary absent, the error names the missing prerequisite while all other tools keep working)"]
     depends_on: [DEV-503, QA-000]
     scope: >-
@@ -1645,7 +1645,7 @@ nodes:
     title: "Review: Missing-binary handling"
     type: rev
     milestone: M6
-    status: pending
+    status: approved
     implements: ["Review gate for FR-503"]
     depends_on: [DEV-503, QA-503]
     done_when: "Review approved with no unresolved findings."
@@ -1654,7 +1654,7 @@ nodes:
     title: "Milestone gate: Structural search"
     type: gate
     milestone: M6
-    status: pending
+    status: approved
     depends_on: [REV-501, REV-502, REV-503]
     done_when: "All M6 REV nodes approved."
 
