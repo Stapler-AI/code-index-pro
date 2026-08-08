@@ -4,6 +4,7 @@ import { existsSync, rmSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { graphHooks } from "./graph/hooks";
 import { runPipeline } from "./pipeline/run";
+import { startServer } from "./server/server";
 import { CODE_INDEX_DIR } from "./storage/database";
 import { clearReindexRequired, isReindexRequired, openHealthy } from "./storage/health";
 
@@ -16,7 +17,7 @@ Commands:
                  --full  clear all indexed rows first, then re-index
   stats          Show index statistics for the current directory's repo
   clear          Delete the current directory's index (.code-index/)
-  serve [path]   Start the MCP server (not yet implemented)
+  serve [path]   Start the stdio MCP server for the repo (path defaults to cwd)
 `;
 
 /** `code-index index [path] [--full]` (FR-701). */
@@ -90,6 +91,19 @@ function commandStats(): number {
   }
 }
 
+/**
+ * `code-index serve [path]` (FR-704): starts the stdio MCP server. Long-
+ * running — stdout belongs to the MCP transport, so nothing is printed here.
+ */
+function commandServe(args: string[]): number {
+  const repoRoot = resolve(args.filter((a) => !a.startsWith("-"))[0] ?? process.cwd());
+  startServer(repoRoot).catch((error) => {
+    process.stderr.write(`code-index serve failed: ${(error as Error).message}\n`);
+    process.exit(1);
+  });
+  return 0;
+}
+
 /** `code-index clear` (FR-703): removes the whole .code-index/ directory. */
 function commandClear(): number {
   const codeIndexDir = join(process.cwd(), CODE_INDEX_DIR);
@@ -115,6 +129,8 @@ export function main(argv: string[]): number {
       return commandStats();
     case "clear":
       return commandClear();
+    case "serve":
+      return commandServe(rest);
     default:
       process.stderr.write(`code-index: unknown or not-yet-implemented command: ${command}\n\n`);
       process.stderr.write(USAGE);

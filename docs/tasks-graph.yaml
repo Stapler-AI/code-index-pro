@@ -1515,7 +1515,7 @@ nodes:
     title: "Review: CLI: serve"
     type: rev
     milestone: M5
-    status: pending
+    status: approved
     implements: ["Review gate for FR-704"]
     depends_on: [DEV-704, QA-704]
     done_when: "Review approved with no unresolved findings."
@@ -1524,7 +1524,7 @@ nodes:
     title: "Milestone gate: MCP server"
     type: gate
     milestone: M5
-    status: pending
+    status: approved
     depends_on: [REV-601, REV-602, REV-603, REV-604, REV-704]
     done_when: "All M5 REV nodes approved."
 
