@@ -188,7 +188,7 @@ nodes:
     title: "Core tables"
     type: dev
     milestone: M1
-    status: pending
+    status: done
     implements: [FR-102]
     spec: ["schema.md#core-tables-ported"]
     depends_on: [DEV-101]
@@ -206,7 +206,7 @@ nodes:
     title: "Tests: core tables"
     type: qa
     milestone: M1
-    status: pending
+    status: done
     implements: ["FR-102 acceptance"]
     depends_on: [DEV-102, QA-000]
     scope: >-
@@ -219,7 +219,7 @@ nodes:
     title: "Review: Core tables"
     type: rev
     milestone: M1
-    status: pending
+    status: approved
     implements: ["Review gate for FR-102"]
     spec: ["schema.md#core-tables-ported"]
     depends_on: [DEV-102, QA-102]
