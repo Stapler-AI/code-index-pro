@@ -889,7 +889,7 @@ nodes:
     title: "Tree-sitter query files"
     type: dev
     milestone: M3
-    status: pending
+    status: done
     implements: [FR-301]
     spec: ["indexing.md#symbol-and-edge-extraction-new", "ast-graph.md#construction"]
     depends_on: [DEV-204]
@@ -906,7 +906,7 @@ nodes:
     title: "Tests: query files compile & capture"
     type: qa
     milestone: M3
-    status: pending
+    status: done
     implements: ["FR-301 acceptance"]
     depends_on: [DEV-301, QA-000]
     scope: >-
@@ -920,7 +920,7 @@ nodes:
     title: "Review: Tree-sitter query files"
     type: rev
     milestone: M3
-    status: pending
+    status: approved
     implements: ["Review gate for FR-301"]
     spec: ["indexing.md#symbol-and-edge-extraction-new", "ast-graph.md#construction"]
     depends_on: [DEV-301, QA-301]

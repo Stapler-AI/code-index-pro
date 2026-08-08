@@ -6,7 +6,8 @@
     "code-index": "dist/cli.js"
   },
   "files": [
-    "dist"
+    "dist",
+    "queries"
   ],
   "scripts": {
     "build": "tsc -p tsconfig.json",

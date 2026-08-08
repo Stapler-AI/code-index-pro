@@ -53,6 +53,11 @@ const GRAMMARS: Record<Language, any> = {
   tsx: TreeSitterTypeScript.tsx,
 };
 
+/** Grammar object for a language; shared with the query layer (FR-301). */
+export function grammarFor(language: Language): any {
+  return GRAMMARS[language];
+}
+
 const parsers = new Map<Language, Parser>();
 
 function parserFor(language: Language): Parser {
