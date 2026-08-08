@@ -568,7 +568,7 @@ nodes:
     title: "Change detection"
     type: dev
     milestone: M2
-    status: pending
+    status: done
     implements: [FR-203]
     spec: ["indexing.md#change-detection"]
     depends_on: [DEV-108]
@@ -584,7 +584,7 @@ nodes:
     title: "Tests: change detection"
     type: qa
     milestone: M2
-    status: pending
+    status: done
     implements: ["FR-203 acceptance", "FR-200 acceptance (a 1 MB+ file and a binary file are skipped)"]
     depends_on: [DEV-203, QA-000]
     scope: >-
@@ -597,7 +597,7 @@ nodes:
     title: "Review: Change detection"
     type: rev
     milestone: M2
-    status: pending
+    status: approved
     implements: ["Review gate for FR-203"]
     spec: ["indexing.md#change-detection"]
     depends_on: [DEV-203, QA-203]
