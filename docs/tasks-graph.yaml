@@ -393,7 +393,7 @@ nodes:
     title: "Health check & quarantine-and-rebuild"
     type: dev
     milestone: M1
-    status: pending
+    status: done
     implements: [FR-107]
     spec: ["schema.md#health-check-and-recovery"]
     depends_on: [DEV-106]
@@ -413,7 +413,7 @@ nodes:
     title: "Tests: recovery drill"
     type: qa
     milestone: M1
-    status: pending
+    status: done
     implements: ["FR-107 acceptance (corrupted file quarantined with sidecars and rebuilt; fresh DB passes health check; higher user_version rebuilds)"]
     depends_on: [DEV-107, QA-000]
     scope: >-
@@ -428,7 +428,7 @@ nodes:
     title: "Review: Health check & quarantine-and-rebuild"
     type: rev
     milestone: M1
-    status: pending
+    status: approved
     implements: ["Review gate for FR-107"]
     spec: ["schema.md#health-check-and-recovery"]
     depends_on: [DEV-107, QA-107]
