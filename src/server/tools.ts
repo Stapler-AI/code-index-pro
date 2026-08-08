@@ -18,6 +18,21 @@ import type { ServerContext, ToolDefinition } from "./server";
  * to the M4 query layer and the DEV-206 pipeline; payloads are JSON in a
  * single text content block. search_structural is a stub until M6 lands
  * (FR-503 missing-prerequisite error).
+ *
+ * Design rules (FR-603, mcp-server.md#design-rules), enforced by
+ * test/server-design-rules.test.ts:
+ * - Summaries by default: no tool payload outside get_chunk carries a
+ *   content/body field; previews are snippets or one-line signatures.
+ * - Every list is capped (DEV-404 limits) and reports truncated.
+ * - Every location result carries an id plus path + [start, end] lines —
+ *   the path may sit one level up when it is shared by the whole group
+ *   (file_outline's file, impact_of_change's per-file groups,
+ *   get_dependencies' source).
+ * Documented exemptions: module_map rows are aggregates (from_file is their
+ * path; no single id/lines exists); unresolved edge/dependency rows have no
+ * target id by nature (they are flagged hints); index_status's per-language
+ * list is a bounded aggregate, not a search result, and its recovery_events
+ * list grows only one entry per quarantine (practically bounded).
  */
 
 /** Bad input / unavailable prerequisite: surfaced as an isError result. */

@@ -1408,7 +1408,7 @@ nodes:
     title: "Design rules enforcement"
     type: dev
     milestone: M5
-    status: in_progress
+    status: done
     implements: [FR-603]
     spec: ["mcp-server.md#design-rules"]
     depends_on: [DEV-602]
@@ -1424,7 +1424,7 @@ nodes:
     title: "Tests: design-rule conformance"
     type: qa
     milestone: M5
-    status: pending
+    status: done
     implements: ["FR-603 acceptance"]
     depends_on: [DEV-603, QA-000]
     scope: >-
@@ -1437,7 +1437,7 @@ nodes:
     title: "Review: Design rules enforcement"
     type: rev
     milestone: M5
-    status: pending
+    status: approved
     implements: ["Review gate for FR-603"]
     spec: ["mcp-server.md#design-rules"]
     depends_on: [DEV-603, QA-603]
