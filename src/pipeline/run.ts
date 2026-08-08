@@ -35,13 +35,25 @@ export interface ChangedFileRecord {
   fileId: number;
   relativePath: string;
   language: Language;
+  /**
+   * Distinct symbol names the file's previous index rows had (empty for new
+   * files). Captured before the delete-then-insert rewrite because inbound
+   * edges are SET NULL even when a symbol keeps its name — incremental
+   * re-resolution (FR-305) needs the union of before/after names.
+   */
+  previousSymbolNames: string[];
 }
 
 export interface PipelineHooks {
   /** Symbol & edge extraction (M3). Default: no symbols, no edges. */
   extract?: (input: ExtractionInput) => Extraction;
-  /** Edge resolution (M3), run once per run after persist and prune complete. */
-  resolve?: (db: Database, changedFiles: ChangedFileRecord[]) => void;
+  /**
+   * Edge resolution (M3), run once per run after persist and prune complete.
+   * prunedSymbolNames are the distinct symbol names of files removed by the
+   * prune — their inbound edges were nulled (or their departure may break a
+   * unique-name ambiguity), so they join the re-resolution set.
+   */
+  resolve?: (db: Database, changedFiles: ChangedFileRecord[], prunedSymbolNames: string[]) => void;
 }
 
 export interface RunDelta {
@@ -61,7 +73,10 @@ export function runPipeline(db: Database, repoRoot: string, hooks: PipelineHooks
   let filesAdded = 0;
   let filesUpdated = 0;
 
-  const hasRow = db.prepare("SELECT 1 FROM indexed_files WHERE relative_path = ?");
+  const hasRow = db.prepare("SELECT id FROM indexed_files WHERE relative_path = ?");
+  const symbolNames = db.prepare("SELECT DISTINCT name FROM symbols WHERE file_id = ?");
+  const namesOf = (fileId: number): string[] =>
+    (symbolNames.all(fileId) as { name: string }[]).map((r) => r.name);
 
   for (const relativePath of discovered) {
     const language = detectLanguage(relativePath);
@@ -74,7 +89,9 @@ export function runPipeline(db: Database, repoRoot: string, hooks: PipelineHooks
     const chunks = extractChunks(tree, decision.content, language);
     const { symbols, edges } = extract({ relativePath, language, content: decision.content, tree, chunks });
 
-    const isNew = hasRow.get(relativePath) === undefined;
+    const existing = hasRow.get(relativePath) as { id: number } | undefined;
+    const isNew = existing === undefined;
+    const previousSymbolNames = existing ? namesOf(existing.id) : [];
     const fileId = writeFile(db, {
       file: {
         relativePath,
@@ -87,17 +104,24 @@ export function runPipeline(db: Database, repoRoot: string, hooks: PipelineHooks
       edges,
     });
 
-    changedFiles.push({ fileId, relativePath, language });
+    changedFiles.push({ fileId, relativePath, language, previousSymbolNames });
     if (isNew) filesAdded += 1;
     else filesUpdated += 1;
   }
+
+  // Capture doomed files' symbol names before the prune deletes their rows.
+  const seen = new Set(discovered);
+  const doomed = (
+    db.prepare("SELECT id, relative_path FROM indexed_files").all() as { id: number; relative_path: string }[]
+  ).filter((row) => !seen.has(row.relative_path));
+  const prunedSymbolNames = [...new Set(doomed.flatMap((row) => namesOf(row.id)))];
 
   // Prune before resolving so resolution sees the run's final symbol
   // universe — a deleted file's exports must not create phantom ambiguity in
   // the unique-name fallback or attract edges that would cascade-null.
   const filesRemoved = pruneUnseenFiles(db, discovered).length;
 
-  hooks.resolve?.(db, changedFiles);
+  hooks.resolve?.(db, changedFiles, prunedSymbolNames);
 
   return { filesAdded, filesUpdated, filesRemoved, durationMs: Date.now() - startedAt };
 }
