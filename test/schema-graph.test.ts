@@ -1,7 +1,7 @@
 import type { Database } from "better-sqlite3";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { openDatabase } from "../src/storage/database";
-import { applySchema } from "../src/storage/schema";
+import { runMigrations } from "../src/storage/migrations";
 import { buildFixtureRepo, FixtureRepo } from "./helpers/fixtures";
 
 describe("graph tables (FR-103)", () => {
@@ -11,7 +11,7 @@ describe("graph tables (FR-103)", () => {
   beforeEach(() => {
     repo = buildFixtureRepo({ git: false });
     db = openDatabase(repo.root);
-    applySchema(db);
+    runMigrations(db);
   });
   afterEach(() => {
     db.close();

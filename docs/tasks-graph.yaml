@@ -352,7 +352,7 @@ nodes:
     title: "Migrations"
     type: dev
     milestone: M1
-    status: pending
+    status: done
     implements: [FR-106]
     spec: ["schema.md#migrations"]
     depends_on: [DEV-102, DEV-103, DEV-104, DEV-105]
@@ -370,7 +370,7 @@ nodes:
     title: "Tests: migration runner"
     type: qa
     milestone: M1
-    status: pending
+    status: done
     implements: ["FR-106 acceptance"]
     depends_on: [DEV-106, QA-000]
     scope: >-
@@ -383,7 +383,7 @@ nodes:
     title: "Review: Migrations"
     type: rev
     milestone: M1
-    status: pending
+    status: approved
     implements: ["Review gate for FR-106"]
     spec: ["schema.md#migrations"]
     depends_on: [DEV-106, QA-106]

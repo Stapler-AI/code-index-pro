@@ -1,5 +1,3 @@
-import type { Database } from "better-sqlite3";
-
 /**
  * Schema DDL (schema.md). Each section lands with its own task (DEV-102..105)
  * and is consolidated into migration 1 by the migration runner (DEV-106).
@@ -104,10 +102,3 @@ CREATE TABLE meta (
 );
 `;
 
-/** Apply the schema to a fresh database. (Interim entry point until DEV-106's migration runner owns this DDL as migration 1.) */
-export function applySchema(db: Database): void {
-  db.exec(CORE_TABLES_DDL);
-  db.exec(GRAPH_TABLES_DDL);
-  db.exec(FTS_DDL);
-  db.exec(META_DDL);
-}

@@ -3,7 +3,7 @@ import { resolve } from "node:path";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { openDatabase } from "../src/storage/database";
 import { checkMeta, populateMeta, SCHEMA_VERSION, toolVersion } from "../src/storage/meta";
-import { applySchema } from "../src/storage/schema";
+import { runMigrations } from "../src/storage/migrations";
 import { buildFixtureRepo, FixtureRepo } from "./helpers/fixtures";
 
 describe("meta table (FR-105)", () => {
@@ -13,7 +13,7 @@ describe("meta table (FR-105)", () => {
   beforeEach(() => {
     repo = buildFixtureRepo({ git: false });
     db = openDatabase(repo.root);
-    applySchema(db);
+    runMigrations(db);
     populateMeta(db, repo.root);
   });
   afterEach(() => {
