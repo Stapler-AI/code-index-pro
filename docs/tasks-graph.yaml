@@ -607,7 +607,7 @@ nodes:
     title: "Chunk extraction"
     type: dev
     milestone: M2
-    status: pending
+    status: done
     implements: [FR-204]
     spec: ["indexing.md#chunk-extraction"]
     depends_on: [DEV-108, DEV-202]
@@ -628,7 +628,7 @@ nodes:
     title: "Tests: chunk extraction"
     type: qa
     milestone: M2
-    status: pending
+    status: done
     implements: ["FR-204 acceptance"]
     depends_on: [DEV-204, QA-000]
     scope: >-
@@ -643,7 +643,7 @@ nodes:
     title: "Review: Chunk extraction"
     type: rev
     milestone: M2
-    status: pending
+    status: approved
     implements: ["Review gate for FR-204"]
     spec: ["indexing.md#chunk-extraction"]
     depends_on: [DEV-204, QA-204]
