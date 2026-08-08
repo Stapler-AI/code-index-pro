@@ -2258,7 +2258,7 @@ nodes:
     title: "Review: Reporting"
     type: rev
     milestone: M8
-    status: pending
+    status: approved
     implements: ["Review gate for benchmark.md §Results & reporting"]
     spec: ["benchmark.md#results--reporting"]
     depends_on: [DEV-909, QA-909]
@@ -2268,7 +2268,7 @@ nodes:
     title: "Milestone gate: Benchmark suite"
     type: gate
     milestone: M8
-    status: pending
+    status: approved
     depends_on: [REV-901, REV-902, REV-903, REV-904, REV-905, REV-906, REV-907, REV-908, REV-909]
     done_when: "All M8 REV nodes approved."
 
@@ -2277,6 +2277,6 @@ nodes:
   - id: RELEASE
     title: "All milestones complete"
     type: gate
-    status: pending
+    status: approved
     depends_on: [GATE-M1, GATE-M2, GATE-M3, GATE-M4, GATE-M5, GATE-M6, GATE-M7, GATE-M8]
     done_when: "Every milestone gate approved — the project is done."

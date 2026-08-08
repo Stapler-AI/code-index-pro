@@ -82,7 +82,9 @@ function groupBy<T>(items: T[], key: (t: T) => string): Map<string, T[]> {
   const map = new Map<string, T[]>();
   for (const item of items) {
     const k = key(item);
-    (map.get(k) ?? map.set(k, []).get(k)!).push(item);
+    const bucket = map.get(k);
+    if (bucket) bucket.push(item);
+    else map.set(k, [item]);
   }
   return map;
 }
@@ -91,10 +93,10 @@ function groupBy<T>(items: T[], key: (t: T) => string): Map<string, T[]> {
 export function buildReport(records: RunRecord[]): ReportData {
   // Per-category × per-arm median cells.
   const cells: CellStats[] = [];
-  for (const [, group] of groupBy(records, (r) => `${categoryOf(r, records)}|${r.arm}`)) {
+  for (const [, group] of groupBy(records, (r) => `${categoryResolver(r.task_id)}|${r.arm}`)) {
     const first = group[0];
     cells.push({
-      category: categoryOf(first, records),
+      category: categoryResolver(first.task_id),
       arm: first.arm,
       runs: group.length,
       tokensMedian: median(group.map(totalTokens)),
@@ -156,9 +158,6 @@ export function buildReport(records: RunRecord[]): ReportData {
 let categoryResolver: (taskId: string) => string = () => "unknown";
 export function setCategoryResolver(fn: (taskId: string) => string): void {
   categoryResolver = fn;
-}
-function categoryOf(record: RunRecord, _all: RunRecord[]): string {
-  return categoryResolver(record.task_id);
 }
 
 export function readRuns(path: string): RunRecord[] {

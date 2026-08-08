@@ -9,6 +9,7 @@ import { gradeExact, gradePathLineSet, gradeSet, gradeEdit, GradeResult } from "
 import { CATEGORIES, TASKS, type BenchTask } from "../tasks";
 import { TARGETS, type Materialized } from "../targets";
 import { toolVersion } from "../../src/storage/meta";
+import { buildReport, readRuns, setCategoryResolver, writeReport } from "./report";
 
 /**
  * Harness orchestrator (benchmark.md#harness, #metrics, #results--reporting).
@@ -359,10 +360,31 @@ export function resolveTasks(selector: string, all: BenchTask[] = TASKS): BenchT
   return matched;
 }
 
-/** `bench run` entry point. */
+/** `bench report [--name <name>] [--date <YYYY-MM-DD>] [--results <dir>]`. */
+function benchReport(argv: string[]): void {
+  const flags = new Map<string, string>();
+  for (let i = 0; i < argv.length; i += 2) flags.set(argv[i].replace(/^--/, ""), argv[i + 1] ?? "");
+  const resultsDir = resolve(flags.get("results") ?? join(__dirname, "..", "results"));
+  const name = flags.get("name") ?? "report";
+  const date = flags.get("date") ?? new Date().toISOString().slice(0, 10);
+  // Resolve categories from the task registry so rows aren't labelled "unknown".
+  setCategoryResolver((taskId) => TASKS.find((t) => t.id === taskId)?.category ?? "unknown");
+  const records = readRuns(join(resultsDir, "runs.jsonl"));
+  const path = writeReport(resultsDir, buildReport(records), name, date);
+  process.stdout.write(`bench report written: ${path}\n`);
+}
+
+/** `bench run` / `bench report` entry point. */
 export async function main(argv: string[]): Promise<void> {
+  if (argv[0] === "report") {
+    benchReport(argv.slice(1));
+    return;
+  }
   if (argv[0] !== "run") {
-    throw new Error(`usage: bench run --task <ids|category|all> --arms <arms> --runs N --workers N --model <id>`);
+    throw new Error(
+      `usage: bench run --task <ids|category|all> --arms <arms> --runs N --workers N --model <id>\n` +
+        `       bench report [--name <name>] [--date <YYYY-MM-DD>] [--results <dir>]`,
+    );
   }
   const parsed = parseBenchArgs(argv.slice(1));
   if (parsed.model.length === 0) throw new Error("--model is required (pin the model per agent)");

@@ -13,6 +13,7 @@ import {
   writeReport,
 } from "../benchmarks/harness/report";
 import type { RunRecord } from "../benchmarks/harness/run";
+import { SEED_TASKS } from "../benchmarks/seed-tasks";
 
 const PACKAGE_ROOT = resolve(__dirname, "..");
 
@@ -135,6 +136,20 @@ describe("bench report aggregation (DEV-909 / QA-909)", () => {
     } finally {
       rmSync(dir, { recursive: true, force: true });
     }
+  });
+});
+
+describe("bench report resolves categories from the registry (REV-909 follow-up)", () => {
+  it("a real seed task_id resolves to its category, not 'unknown'", () => {
+    // Wire the resolver the way the `bench report` subcommand does.
+    setCategoryResolver((taskId) => SEED_TASKS.find((t) => t.id === taskId)?.category ?? "unknown");
+    const records = [
+      rec({ task_id: "sl-fixture-greet-001", arm: "claude-with", score: 1 }),
+      rec({ task_id: "sl-fixture-greet-001", arm: "claude-without", score: 1 }),
+    ];
+    const data = buildReport(records);
+    expect(data.cells.every((c) => c.category === "symbol-lookup")).toBe(true);
+    expect(data.cells.some((c) => c.category === "unknown")).toBe(false);
   });
 });
 
