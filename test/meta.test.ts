@@ -1,8 +1,10 @@
 import type { Database } from "better-sqlite3";
-import { resolve } from "node:path";
+import { mkdtempSync, rmSync, symlinkSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join, resolve } from "node:path";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { openDatabase } from "../src/storage/database";
-import { checkMeta, populateMeta, SCHEMA_VERSION, toolVersion } from "../src/storage/meta";
+import { canonicalRepoRoot, checkMeta, populateMeta, SCHEMA_VERSION, toolVersion } from "../src/storage/meta";
 import { runMigrations } from "../src/storage/migrations";
 import { buildFixtureRepo, FixtureRepo } from "./helpers/fixtures";
 
@@ -27,7 +29,7 @@ describe("meta table (FR-105)", () => {
       value: string;
     }[];
     expect(rows).toEqual([
-      { key: "repo_root", value: resolve(repo.root) },
+      { key: "repo_root", value: canonicalRepoRoot(repo.root) },
       { key: "schema_version", value: SCHEMA_VERSION },
       { key: "tool_version", value: toolVersion() },
     ]);
@@ -36,6 +38,24 @@ describe("meta table (FR-105)", () => {
 
   it("a matching database reports no mismatches", () => {
     expect(checkMeta(db, repo.root)).toEqual([]);
+  });
+
+  it("a symlink alias of the repo root is the SAME repo, not a copy (DEV-805)", () => {
+    // macOS /var -> /private/var style aliasing spuriously quarantined
+    // healthy indexes before canonicalization.
+    const linkParent = mkdtempSync(join(tmpdir(), "meta-alias-"));
+    const alias = join(linkParent, "alias");
+    symlinkSync(repo.root, alias);
+    try {
+      expect(canonicalRepoRoot(alias)).toBe(canonicalRepoRoot(repo.root));
+      expect(checkMeta(db, alias)).toEqual([]);
+    } finally {
+      rmSync(linkParent, { recursive: true, force: true });
+    }
+  });
+
+  it("canonicalRepoRoot falls back to resolve() for paths not on disk", () => {
+    expect(canonicalRepoRoot("/no/such/dir/for/meta")).toBe(resolve("/no/such/dir/for/meta"));
   });
 
   it("flags a copied database (repo_root differs)", () => {

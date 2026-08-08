@@ -1775,7 +1775,7 @@ nodes:
     title: "Worked-example token budget"
     type: dev
     milestone: M7
-    status: in_progress
+    status: done
     implements: ["PRD §4 token-efficiency metric"]
     spec: ["mcp-server.md#example-agent-session"]
     depends_on: [DEV-803]
@@ -1791,7 +1791,7 @@ nodes:
     title: "Tests: token-budget regression guard"
     type: qa
     milestone: M7
-    status: pending
+    status: done
     implements: ["PRD §4 (the worked rename scenario completes in ~400 tokens of tool responses)"]
     depends_on: [DEV-804, QA-000]
     scope: >-
@@ -1804,7 +1804,7 @@ nodes:
     title: "Review: Worked-example token budget"
     type: rev
     milestone: M7
-    status: pending
+    status: approved
     implements: ["Review gate for PRD §4 token-efficiency metric"]
     spec: ["mcp-server.md#example-agent-session"]
     depends_on: [DEV-804, QA-804]
@@ -1814,7 +1814,7 @@ nodes:
     title: "README & doc sync"
     type: dev
     milestone: M7
-    status: pending
+    status: done
     implements: ["M7 deliverable (PRD §7)"]
     depends_on: [DEV-803]
     verified_by: QA-805
@@ -1830,7 +1830,7 @@ nodes:
     title: "Tests: quick-start commands run"
     type: qa
     milestone: M7
-    status: pending
+    status: done
     implements: ["FR-700 acceptance (the three README quick-start commands work against a real repo)"]
     depends_on: [DEV-805, QA-000]
     scope: >-
@@ -1842,7 +1842,7 @@ nodes:
     title: "Review: README & doc sync"
     type: rev
     milestone: M7
-    status: pending
+    status: approved
     implements: ["Review gate for M7 deliverable (PRD §7)"]
     depends_on: [DEV-805, QA-805]
     done_when: "Review approved with no unresolved findings."
@@ -1851,7 +1851,7 @@ nodes:
     title: "Milestone gate: Hardening & dogfood"
     type: gate
     milestone: M7
-    status: pending
+    status: approved
     depends_on: [REV-801, REV-802, REV-803, REV-804, REV-805]
     done_when: "All M7 REV nodes approved."
 
