@@ -10,7 +10,7 @@ import {
   whoCalls,
 } from "../query/graph";
 import { searchCode } from "../query/search";
-import { searchStructural, StructuralSearchError } from "../query/structural";
+import { searchStructural, structuralCandidates, StructuralSearchError } from "../query/structural";
 import { getRecoveryEvents } from "../storage/health";
 import type { ServerContext, ToolDefinition } from "./server";
 
@@ -198,7 +198,7 @@ const searchCodeTool: ToolDefinition = {
 const searchStructuralTool: ToolDefinition = {
   name: "search_structural",
   description:
-    "Structural (AST-shape) search over the LIVE working tree via ast-grep: pattern (with lang) for direct shapes, rule (inline YAML) for contextual ones. Runtime prerequisite: the ast-grep binary.",
+    "Structural (AST-shape) search over the LIVE working tree via ast-grep: pattern (with lang) for direct shapes, rule (inline YAML) for contextual ones. Opt-in index prefilters (prefilter_language / prefilter_fts) narrow the parsed file set at the cost of missing not-yet-indexed files. Runtime prerequisite: the ast-grep binary.",
   inputSchema: {
     type: "object",
     properties: {
@@ -206,6 +206,8 @@ const searchStructuralTool: ToolDefinition = {
       rule: { type: "string" },
       lang: { type: "string" },
       paths: { type: "array", items: { type: "string" } },
+      prefilter_language: { type: "boolean" },
+      prefilter_fts: { type: "string" },
       limit: { type: "integer", minimum: 1 },
     },
     additionalProperties: false,
@@ -217,12 +219,49 @@ const searchStructuralTool: ToolDefinition = {
     if (paths !== undefined && (!Array.isArray(paths) || paths.some((p) => typeof p !== "string"))) {
       throw new ToolError("paths must be an array of strings");
     }
+    const lang = optionalString(args, "lang");
+    const prefilterLanguage = args.prefilter_language;
+    if (prefilterLanguage !== undefined && typeof prefilterLanguage !== "boolean") {
+      throw new ToolError("prefilter_language must be a boolean");
+    }
+    const prefilterFts = optionalString(args, "prefilter_fts");
+    if (prefilterFts !== undefined && prefilterFts.length === 0) {
+      throw new ToolError("prefilter_fts must be a non-empty FTS query");
+    }
+
+    // FR-502: opt-in index prefilter computes the candidate file list; the
+    // match itself still parses the live working tree.
+    let candidatePathList = paths as string[] | undefined;
+    if (prefilterLanguage === true || prefilterFts !== undefined) {
+      if (paths !== undefined) {
+        throw new ToolError("paths and prefilter_* are mutually exclusive — pass one scope mechanism");
+      }
+      if (prefilterLanguage === true && lang === undefined) {
+        throw new ToolError("prefilter_language requires lang");
+      }
+      try {
+        candidatePathList = structuralCandidates(ctx.db, {
+          language: prefilterLanguage === true ? lang : undefined,
+          ftsQuery: prefilterFts,
+        });
+      } catch (error) {
+        // Same agent-facing FTS syntax as search_code — same framing.
+        if (typeof (error as { code?: string }).code === "string" && (error as { code: string }).code.startsWith("SQLITE")) {
+          throw new ToolError(`invalid FTS query: ${(error as Error).message}`);
+        }
+        throw error;
+      }
+      if (candidatePathList.length === 0) {
+        return { results: [], truncated: false };
+      }
+    }
+
     try {
       const { results, truncated } = searchStructural(ctx.repoRoot, {
         pattern: optionalString(args, "pattern"),
         rule: optionalString(args, "rule"),
-        lang: optionalString(args, "lang"),
-        paths: paths as string[] | undefined,
+        lang,
+        paths: candidatePathList,
         limit: optionalPositiveInt(args, "limit"),
       });
       return { results, truncated };

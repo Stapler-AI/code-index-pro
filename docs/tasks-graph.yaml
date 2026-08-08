@@ -1580,7 +1580,7 @@ nodes:
     title: "Scope control"
     type: dev
     milestone: M6
-    status: pending
+    status: done
     implements: [FR-502]
     depends_on: [DEV-501]
     verified_by: QA-502
@@ -1595,7 +1595,7 @@ nodes:
     title: "Tests: scoping"
     type: qa
     milestone: M6
-    status: pending
+    status: done
     implements: ["FR-502 acceptance"]
     depends_on: [DEV-502, QA-000]
     scope: >-
@@ -1608,7 +1608,7 @@ nodes:
     title: "Review: Scope control"
     type: rev
     milestone: M6
-    status: pending
+    status: approved
     implements: ["Review gate for FR-502"]
     depends_on: [DEV-502, QA-502]
     done_when: "Review approved with no unresolved findings."

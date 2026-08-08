@@ -1,4 +1,5 @@
 import { execFileSync } from "node:child_process";
+import type { Database } from "better-sqlite3";
 import { capResults, CappedResults } from "./caps";
 
 /**
@@ -85,6 +86,37 @@ export function checkAstGrepVersion(): void {
 /** Test seam: force the next call to re-probe the binary version. */
 export function resetAstGrepVersionCheck(): void {
   versionChecked = false;
+}
+
+export interface PrefilterOptions {
+  /** Restrict candidates to indexed files of this language. */
+  language?: string;
+  /** Restrict candidates to files with chunks matching this FTS query. */
+  ftsQuery?: string;
+}
+
+/**
+ * Index-backed candidate pre-filtering (FR-502, search.md#scope-control):
+ * turn a whole-repo parse into a candidate-list parse. Only the FILE LIST
+ * comes from the index — the matching itself still parses the live working
+ * tree. Deliberately opt-in: a prefiltered search cannot see files created
+ * after the last index run, trading the freshness guarantee for speed.
+ */
+export function structuralCandidates(db: Database, options: PrefilterOptions): string[] {
+  const language = options.language ?? null;
+  const ftsQuery = options.ftsQuery ?? null;
+  const rows = db
+    .prepare(
+      `SELECT f.relative_path FROM indexed_files f
+       WHERE (? IS NULL OR f.language = ?)
+         AND (? IS NULL OR f.id IN
+           (SELECT c.file_id FROM chunks_fts
+            JOIN code_chunks c ON c.id = chunks_fts.rowid
+            WHERE chunks_fts MATCH ?))
+       ORDER BY f.relative_path`,
+    )
+    .all(language, language, ftsQuery, ftsQuery) as { relative_path: string }[];
+  return rows.map((r) => r.relative_path);
 }
 
 /**
