@@ -1991,7 +1991,7 @@ nodes:
     title: "Agent adapter: Claude Code"
     type: dev
     milestone: M8
-    status: pending
+    status: done
     implements: ["benchmark.md §Agent adapters (Claude Code)"]
     spec: ["benchmark.md#agent-adapters"]
     depends_on: [DEV-901]
@@ -2012,7 +2012,7 @@ nodes:
     title: "Tests: Claude adapter extraction & arm configs"
     type: qa
     milestone: M8
-    status: pending
+    status: done
     implements: ["benchmark.md §Metrics acceptance (Claude Code sources)"]
     depends_on: [DEV-904, QA-000]
     scope: >-
