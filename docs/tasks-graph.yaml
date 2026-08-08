@@ -271,7 +271,7 @@ nodes:
     title: "FTS5 mirror"
     type: dev
     milestone: M1
-    status: pending
+    status: done
     implements: [FR-104]
     spec: ["schema.md#full-text-search-new"]
     depends_on: [DEV-102]
@@ -288,7 +288,7 @@ nodes:
     title: "Tests: FTS consistency"
     type: qa
     milestone: M1
-    status: pending
+    status: done
     implements: ["FR-104 acceptance (FTS content stays consistent with code_chunks after insert/delete cycles)"]
     depends_on: [DEV-104, QA-000]
     scope: >-
@@ -302,7 +302,7 @@ nodes:
     title: "Review: FTS5 mirror"
     type: rev
     milestone: M1
-    status: pending
+    status: approved
     implements: ["Review gate for FR-104"]
     spec: ["schema.md#full-text-search-new"]
     depends_on: [DEV-104, QA-104]

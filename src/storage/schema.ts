@@ -72,8 +72,33 @@ CREATE INDEX idx_edges_target_name ON edges(target_name);
 CREATE INDEX idx_edges_type        ON edges(edge_type);
 `;
 
+/**
+ * Full-text search (new): external-content FTS5 mirror of code_chunks
+ * (schema.md#full-text-search-new). The indexer only ever inserts and deletes
+ * chunk rows (never updates), so insert/delete triggers are sufficient.
+ */
+export const FTS_DDL = `
+CREATE VIRTUAL TABLE chunks_fts USING fts5(
+  content,
+  node_name,
+  content='code_chunks',
+  content_rowid='id'
+);
+
+CREATE TRIGGER chunks_ai AFTER INSERT ON code_chunks BEGIN
+  INSERT INTO chunks_fts(rowid, content, node_name)
+  VALUES (new.id, new.content, new.node_name);
+END;
+
+CREATE TRIGGER chunks_ad AFTER DELETE ON code_chunks BEGIN
+  INSERT INTO chunks_fts(chunks_fts, rowid, content, node_name)
+  VALUES ('delete', old.id, old.content, old.node_name);
+END;
+`;
+
 /** Apply the schema to a fresh database. (Interim entry point until DEV-106's migration runner owns this DDL as migration 1.) */
 export function applySchema(db: Database): void {
   db.exec(CORE_TABLES_DDL);
   db.exec(GRAPH_TABLES_DDL);
+  db.exec(FTS_DDL);
 }
