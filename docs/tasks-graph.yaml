@@ -147,7 +147,7 @@ nodes:
     title: "Database location & lifecycle"
     type: dev
     milestone: M1
-    status: pending
+    status: done
     implements: [FR-101]
     spec: ["schema.md#overview"]
     depends_on: [DEV-000]
@@ -165,7 +165,7 @@ nodes:
     title: "Tests: database open & pragmas"
     type: qa
     milestone: M1
-    status: pending
+    status: done
     implements: ["FR-101 acceptance"]
     depends_on: [DEV-101, QA-000]
     scope: >-
@@ -178,7 +178,7 @@ nodes:
     title: "Review: Database location & lifecycle"
     type: rev
     milestone: M1
-    status: pending
+    status: approved
     implements: ["Review gate for FR-101"]
     spec: ["schema.md#overview"]
     depends_on: [DEV-101, QA-101]
