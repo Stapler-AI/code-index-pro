@@ -24,6 +24,17 @@ import { posix } from "node:path";
  * Default exports carry no marker in the schema, so a default import links
  * only when the local and exported names coincide (name-only philosophy,
  * indexing.md#known-limitations); otherwise the edge stays NULL.
+ *
+ * Accepted limitations (FR-306, indexing.md#known-limitations) — these hold
+ * by design; consumers reading edge data must treat unresolved edges as
+ * HINTS (include them flagged by target_name, never drop them):
+ * - No type inference: obj.method() resolves by method name only; same-named
+ *   methods on different classes are indistinguishable and stay NULL.
+ * - Dynamic constructs are invisible: import(variable), require(variable),
+ *   computed calls (obj[m]()) produce no resolved edge.
+ * - Re-exports and import aliasing are followed one level only.
+ * - Resolution is repo-local: edges into node_modules stay NULL by design,
+ *   with target_module still identifying the package.
  */
 
 /** Simplified Node resolution: relative path + extension guessing. */

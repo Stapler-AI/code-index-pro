@@ -18,6 +18,8 @@ import type { ExtractedSymbol } from "./symbols";
  * and uses of the local alias resolve via the unique-name fallback at best.
  * Exports of non-identifier values (module.exports = { a: 1 },
  * export default expr()) also yield no edge — they name no own symbol.
+ * The full accepted-limitations list (FR-306) lives on src/graph/resolve.ts;
+ * consumers must treat unresolved edges as hints, never drop them.
  */
 
 type EdgeType = "calls" | "imports" | "exports" | "references" | "extends" | "implements";

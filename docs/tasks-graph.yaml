@@ -1101,7 +1101,7 @@ nodes:
     title: "Documented limitations preserved"
     type: dev
     milestone: M3
-    status: pending
+    status: done
     implements: [FR-306]
     spec: ["indexing.md#known-limitations"]
     depends_on: [DEV-304]
@@ -1119,7 +1119,7 @@ nodes:
     title: "Tests: limitations behave as documented"
     type: qa
     milestone: M3
-    status: pending
+    status: done
     implements: ["FR-306 acceptance"]
     depends_on: [DEV-306, QA-000]
     scope: >-
@@ -1133,7 +1133,7 @@ nodes:
     title: "Review: Documented limitations preserved"
     type: rev
     milestone: M3
-    status: pending
+    status: approved
     implements: ["Review gate for FR-306"]
     spec: ["indexing.md#known-limitations"]
     depends_on: [DEV-306, QA-306]
@@ -1143,7 +1143,7 @@ nodes:
     title: "Milestone gate: Symbol graph"
     type: gate
     milestone: M3
-    status: pending
+    status: approved
     depends_on: [REV-301, REV-302, REV-303, REV-304, REV-305, REV-306]
     done_when: "All M3 REV nodes approved."
 
