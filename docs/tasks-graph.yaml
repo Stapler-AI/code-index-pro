@@ -772,7 +772,7 @@ nodes:
     title: "CLI: stats"
     type: dev
     milestone: M2
-    status: pending
+    status: done
     implements: [FR-702]
     depends_on: [DEV-206]
     verified_by: QA-702
@@ -787,7 +787,7 @@ nodes:
     title: "Tests: stats command"
     type: qa
     milestone: M2
-    status: pending
+    status: done
     implements: ["FR-702 acceptance (stats output matches database contents)"]
     depends_on: [DEV-702, QA-000]
     scope: >-
@@ -799,7 +799,7 @@ nodes:
     title: "Review: CLI: stats"
     type: rev
     milestone: M2
-    status: pending
+    status: approved
     implements: ["Review gate for FR-702"]
     depends_on: [DEV-702, QA-702]
     done_when: "Review approved with no unresolved findings."

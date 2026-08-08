@@ -1,5 +1,13 @@
 import { execFileSync } from "node:child_process";
-import { mkdirSync, mkdtempSync, readFileSync, rmSync, unlinkSync, writeFileSync } from "node:fs";
+import {
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  realpathSync,
+  rmSync,
+  unlinkSync,
+  writeFileSync,
+} from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 
@@ -75,7 +83,10 @@ function git(root: string, ...args: string[]): void {
  * are committed; with `git: false` the same tree is left as a plain directory.
  */
 export function buildFixtureRepo(opts: { git: boolean }): FixtureRepo {
-  const root = mkdtempSync(join(tmpdir(), "code-index-fixture-"));
+  // realpath so the root survives process.chdir/cwd round-trips on macOS,
+  // where tmpdir() is a /var -> /private/var symlink (meta.repo_root compares
+  // resolved paths).
+  const root = realpathSync(mkdtempSync(join(tmpdir(), "code-index-fixture-")));
   for (const [relPath, content] of Object.entries(BASE_FILES)) {
     writeInto(root, relPath, content);
   }
