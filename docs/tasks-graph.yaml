@@ -1,0 +1,2282 @@
+# code-index — Agent Task Graph
+#
+# Machine-readable conversion of tasks.md (kept unchanged as the archival
+# reference). The PRD and the spec docs it cites remain the design authority —
+# every node links to its source. This file only sequences and scopes the work.
+#
+# Node semantics
+# --------------
+# - Every FR is a DEV/QA/REV triplet sharing a numeric id (DEV-104 implements
+#   FR-104, QA-104 tests it, REV-104 reviews the pair). x00-series ids cover
+#   non-FR work (scaffolding, hardening).
+# - Edges are `depends_on` lists (task ids only, no prose). The only edges
+#   inside a triplet point backward: QA -> DEV, REV -> {DEV, QA}. A DEV node's
+#   completion criterion references its `verified_by` QA node via `done_when`;
+#   that coupling is deliberately NOT an edge (it would be circular).
+# - `gate` nodes make milestone review-completion machine-visible: each gate
+#   depends on all of its milestone's REV nodes. Ordinary task edges never
+#   point at REV or gate nodes, so work in later milestones can proceed in
+#   parallel exactly as tasks.md allows; gates only checkpoint milestone
+#   completion. RELEASE depends on all gates.
+#
+# Status lifecycle
+# ----------------
+# - dev / qa nodes: pending -> in_progress -> done. A REV rework verdict resets
+#   the affected node(s) from done to rework; fix, re-run QA, return to done.
+# - rev nodes:      pending -> in_progress -> approved | rework. On rework,
+#   record findings (in the review conversation / PR), set the paired dev/qa
+#   node(s) to rework, and set the rev node back to pending once rework starts.
+#   Terminal state is approved.
+# - gate nodes:     pending -> approved. Flip to approved automatically when
+#   every depends_on REV node is approved; never worked on directly.
+# Orchestrators update ONLY `status:` fields. Never reorder, renumber, or
+# delete nodes.
+
+version: 1
+source: tasks.md
+states: [pending, in_progress, done, rework, approved]
+
+scheduling:
+  select: >-
+    Pick the first node in file order with status pending whose depends_on
+    nodes all have status done (or approved, for rev/gate dependencies).
+    Skip qa, rev, and gate nodes during selection — they are reached through
+    the triplet rule and gate rule below, not picked independently.
+  triplet_rule: >-
+    Execute each triplet as a unit and work test-adjacent: complete DEV-xxx,
+    then immediately its verified_by QA-xxx, then its reviewed_by REV-xxx,
+    before selecting the next node.
+  rework_rule: >-
+    A rework verdict from a REV node sets the defective dev/qa node(s) to
+    rework. Address the findings, re-run the QA tests, set the pair back to
+    done, and re-request review. Repeat until the REV node is approved.
+  gate_rule: >-
+    A milestone is complete only when its gate node is approved (all its REV
+    nodes approved). Gates never block other tasks' depends_on; they are
+    checkpoints — summarize progress at each gate before continuing.
+
+conventions:
+  critical_path: DEV-000 -> M1 storage -> M2 pipeline -> M3 graph -> M4 queries -> M5 server -> M7 hardening
+  parallel_branches:
+    - M6 structural search depends only on DEV-601 (server shell), not on the
+      index — it can proceed in parallel with M3/M4 work; its tool registration
+      slots into DEV-602's catalog when that lands.
+    - M8 benchmark authoring (DEV-901..905, DEV-907) needs only QA-000;
+      end-to-end `bench run` with-arms need M5 (DEV-704); the task generator
+      (DEV-908) needs the M2 CLI (DEV-701) and M3 resolution (DEV-304).
+  shared_fixtures: >-
+    QA-000 fixtures are shared infrastructure: every QA node depends on it.
+    Extend the fixture repos there (not ad-hoc per test) so golden rows stay
+    consistent.
+  risks: >-
+    PRD §8 cross-cutting risks: pin tree-sitter/better-sqlite3 versions at
+    DEV-000 and verify native builds early; cover both `typescript` and `tsx`
+    grammars in every M3 fixture; pin a minimum ast-grep version at DEV-501.
+  benchmarks_manual_only: >-
+    Benchmark runs are manual and deliberate — never CI-scheduled
+    (benchmark.md §Non-goals).
+  review_scope: >-
+    Applies to every rev node (their `scope` is this text): the code review
+    agent reviews the paired DEV implementation and QA tests against the
+    linked spec sections — implementation matches the spec and stays within
+    task scope; tests genuinely encode the acceptance criteria (not weakened
+    to pass); no unrelated changes. Approve, or return findings for rework.
+
+milestones:
+  - {id: M1, title: "Scaffolding + storage layer", gate: GATE-M1}
+  - {id: M2, title: "Indexer pipeline + basic CLI", gate: GATE-M2}
+  - {id: M3, title: "Symbol graph", gate: GATE-M3}
+  - {id: M4, title: "Query layer", gate: GATE-M4}
+  - {id: M5, title: "MCP server", gate: GATE-M5}
+  - {id: M6, title: "Structural search", gate: GATE-M6}
+  - {id: M7, title: "Hardening & dogfood", gate: GATE-M7}
+  - {id: M8, title: "Benchmark suite", gate: GATE-M8}
+
+nodes:
+  # ── M1 — Scaffolding + storage layer ──────────────────────────────────────
+
+  - id: DEV-000
+    title: "Project scaffolding"
+    type: dev
+    milestone: M1
+    status: done
+    implements: ["PRD §6 technical requirements", "FR-705 (bin wiring)"]
+    spec: ["prd.md#6-technical-requirements"]
+    depends_on: []
+    verified_by: QA-000
+    reviewed_by: REV-000
+    scope: >-
+      TypeScript project setup: tsconfig.json, src/ layout, build script.
+      Dependencies with versions pinned (native-build risk, PRD §8):
+      better-sqlite3, tree-sitter, tree-sitter-javascript,
+      tree-sitter-typescript, @modelcontextprotocol/sdk. Test runner installed
+      and configured. package.json bin entry `code-index` -> CLI stub (prints
+      usage; real commands come in M2/M5).
+    done_when: >-
+      Build passes, native modules compile on the dev platform, the bin stub
+      runs, and QA-000's smoke test passes.
+
+  - id: QA-000
+    title: "Test harness + shared fixture repos"
+    type: qa
+    milestone: M1
+    status: done
+    implements: ["PRD §6 testing requirement (automated tests per milestone against fixture repos)"]
+    depends_on: [DEV-000]
+    scope: >-
+      Test-runner config wired into package.json scripts. Fixture-repo
+      builders (temp-dir based, reused by all later QA tasks): a small repo
+      with JS + TS + TSX files, in git and non-git variants; helpers to
+      write/edit/delete fixture files mid-test. DB helpers: open a fixture's
+      .code-index/index.db, query rows, count writes.
+    done_when: >-
+      A smoke test builds both fixture variants and asserts their file layout;
+      harness runs green in CI-style invocation.
+
+  - id: REV-000
+    title: "Review: Project scaffolding"
+    type: rev
+    milestone: M1
+    status: approved
+    implements: ["Review gate for PRD §6 technical requirements, FR-705"]
+    spec: ["prd.md#6-technical-requirements"]
+    depends_on: [DEV-000, QA-000]
+    done_when: "Review approved with no unresolved findings."
+
+  - id: DEV-101
+    title: "Database location & lifecycle"
+    type: dev
+    milestone: M1
+    status: pending
+    implements: [FR-101]
+    spec: ["schema.md#overview"]
+    depends_on: [DEV-000]
+    verified_by: QA-101
+    reviewed_by: REV-101
+    scope: >-
+      Open/create one SQLite DB per repo at .code-index/index.db via
+      better-sqlite3 (create .code-index/ as needed). Pragmas on open:
+      journal_mode = WAL, foreign_keys = ON, synchronous = NORMAL.
+      .code-index/ is excluded from indexing (enforced in DEV-201's discovery;
+      the exclusion constant lives here).
+    done_when: "QA-101 passes."
+
+  - id: QA-101
+    title: "Tests: database open & pragmas"
+    type: qa
+    milestone: M1
+    status: pending
+    implements: ["FR-101 acceptance"]
+    depends_on: [DEV-101, QA-000]
+    scope: >-
+      Tests that opening a fixture repo creates .code-index/index.db; the
+      three pragma values read back as configured; reopening an existing
+      database succeeds without recreating it.
+    done_when: "Tests pass."
+
+  - id: REV-101
+    title: "Review: Database location & lifecycle"
+    type: rev
+    milestone: M1
+    status: pending
+    implements: ["Review gate for FR-101"]
+    spec: ["schema.md#overview"]
+    depends_on: [DEV-101, QA-101]
+    done_when: "Review approved with no unresolved findings."
+
+  - id: DEV-102
+    title: "Core tables"
+    type: dev
+    milestone: M1
+    status: pending
+    implements: [FR-102]
+    spec: ["schema.md#core-tables-ported"]
+    depends_on: [DEV-101]
+    verified_by: QA-102
+    reviewed_by: REV-102
+    scope: >-
+      indexed_files and code_chunks exactly as specified — columns,
+      relative_path UNIQUE, ON DELETE CASCADE from files to chunks,
+      idx_chunks_file_id, idx_chunks_node_type, snake_case, ISO-8601 text
+      timestamps, integer booleans. (Created via the migration mechanism once
+      DEV-106 lands; a first migration file is acceptable here.)
+    done_when: "QA-102 passes."
+
+  - id: QA-102
+    title: "Tests: core tables"
+    type: qa
+    milestone: M1
+    status: pending
+    implements: ["FR-102 acceptance"]
+    depends_on: [DEV-102, QA-000]
+    scope: >-
+      Schema-introspection tests (sqlite_master, PRAGMA table_info): all
+      columns/types/indexes present; duplicate relative_path insert fails;
+      deleting an indexed_files row cascades to its code_chunks.
+    done_when: "Tests pass."
+
+  - id: REV-102
+    title: "Review: Core tables"
+    type: rev
+    milestone: M1
+    status: pending
+    implements: ["Review gate for FR-102"]
+    spec: ["schema.md#core-tables-ported"]
+    depends_on: [DEV-102, QA-102]
+    done_when: "Review approved with no unresolved findings."
+
+  - id: DEV-103
+    title: "Graph tables"
+    type: dev
+    milestone: M1
+    status: pending
+    implements: [FR-103]
+    spec: ["schema.md#graph-tables-new"]
+    depends_on: [DEV-102]
+    verified_by: QA-103
+    reviewed_by: REV-103
+    scope: >-
+      symbols and edges exactly as specified: cascade from indexed_files;
+      symbols.chunk_id -> ON DELETE SET NULL; edges.source_symbol_id ->
+      CASCADE; edges.target_symbol_id -> SET NULL; indexes idx_symbols_name,
+      idx_symbols_file, and the four edge indexes (source, target,
+      target_name, type).
+    done_when: "QA-103 passes."
+
+  - id: QA-103
+    title: "Tests: graph tables & delete behaviors"
+    type: qa
+    milestone: M1
+    status: pending
+    implements: ["FR-103 acceptance"]
+    depends_on: [DEV-103, QA-000]
+    scope: >-
+      Tests: deleting a file cascades to its symbols and edges; deleting a
+      chunk nulls symbols.chunk_id; deleting a target symbol nulls
+      edges.target_symbol_id while deleting a source symbol removes the edge;
+      all six indexes exist.
+    done_when: "Tests pass."
+
+  - id: REV-103
+    title: "Review: Graph tables"
+    type: rev
+    milestone: M1
+    status: pending
+    implements: ["Review gate for FR-103"]
+    spec: ["schema.md#graph-tables-new"]
+    depends_on: [DEV-103, QA-103]
+    done_when: "Review approved with no unresolved findings."
+
+  - id: DEV-104
+    title: "FTS5 mirror"
+    type: dev
+    milestone: M1
+    status: pending
+    implements: [FR-104]
+    spec: ["schema.md#full-text-search-new"]
+    depends_on: [DEV-102]
+    verified_by: QA-104
+    reviewed_by: REV-104
+    scope: >-
+      External-content chunks_fts over content + node_name
+      (content='code_chunks', content_rowid='id'); AFTER INSERT and AFTER
+      DELETE triggers exactly as in the spec (no UPDATE trigger — the indexer
+      never updates chunk rows).
+    done_when: "QA-104 passes."
+
+  - id: QA-104
+    title: "Tests: FTS consistency"
+    type: qa
+    milestone: M1
+    status: pending
+    implements: ["FR-104 acceptance (FTS content stays consistent with code_chunks after insert/delete cycles)"]
+    depends_on: [DEV-104, QA-000]
+    scope: >-
+      Tests: inserted chunks are findable via MATCH on both content and
+      node_name; after repeated insert->delete->insert cycles, FTS row count
+      equals code_chunks count and deleted content is unfindable; a
+      bm25()-ordered query with snippet() returns the spec's join shape.
+    done_when: "Tests pass."
+
+  - id: REV-104
+    title: "Review: FTS5 mirror"
+    type: rev
+    milestone: M1
+    status: pending
+    implements: ["Review gate for FR-104"]
+    spec: ["schema.md#full-text-search-new"]
+    depends_on: [DEV-104, QA-104]
+    done_when: "Review approved with no unresolved findings."
+
+  - id: DEV-105
+    title: "Meta table"
+    type: dev
+    milestone: M1
+    status: pending
+    implements: [FR-105]
+    spec: ["schema.md#meta-table"]
+    depends_on: [DEV-102]
+    verified_by: QA-105
+    reviewed_by: REV-105
+    scope: >-
+      meta key/value table; populate schema_version, repo_root (absolute path
+      at creation), tool_version on database creation; a check helper that
+      reports mismatch (incompatible version, copied database) for the health
+      check to act on.
+    done_when: "QA-105 passes."
+
+  - id: QA-105
+    title: "Tests: meta population & mismatch detection"
+    type: qa
+    milestone: M1
+    status: pending
+    implements: ["FR-105 acceptance"]
+    depends_on: [DEV-105, QA-000]
+    scope: >-
+      Tests: a fresh database contains the three rows with correct values; the
+      mismatch helper flags a database whose repo_root differs (simulated
+      copy) and whose schema_version differs.
+    done_when: "Tests pass."
+
+  - id: REV-105
+    title: "Review: Meta table"
+    type: rev
+    milestone: M1
+    status: pending
+    implements: ["Review gate for FR-105"]
+    spec: ["schema.md#meta-table"]
+    depends_on: [DEV-105, QA-105]
+    done_when: "Review approved with no unresolved findings."
+
+  - id: DEV-106
+    title: "Migrations"
+    type: dev
+    milestone: M1
+    status: pending
+    implements: [FR-106]
+    spec: ["schema.md#migrations"]
+    depends_on: [DEV-102, DEV-103, DEV-104, DEV-105]
+    verified_by: QA-106
+    reviewed_by: REV-106
+    scope: >-
+      Numbered forward-only migration runner tracked via PRAGMA user_version;
+      each migration in its own transaction, bumping user_version last; all
+      table/trigger/index DDL from DEV-102/103/104/105 consolidated as
+      migration 1; a user_version higher than the tool knows is reported as
+      foreign (quarantine handled by DEV-107).
+    done_when: "QA-106 passes."
+
+  - id: QA-106
+    title: "Tests: migration runner"
+    type: qa
+    milestone: M1
+    status: pending
+    implements: ["FR-106 acceptance"]
+    depends_on: [DEV-106, QA-000]
+    scope: >-
+      Tests: a fresh database migrates 0->current and user_version matches;
+      reopening is a no-op (no DDL re-runs); a database with user_version =
+      current+1 is reported foreign.
+    done_when: "Tests pass."
+
+  - id: REV-106
+    title: "Review: Migrations"
+    type: rev
+    milestone: M1
+    status: pending
+    implements: ["Review gate for FR-106"]
+    spec: ["schema.md#migrations"]
+    depends_on: [DEV-106, QA-106]
+    done_when: "Review approved with no unresolved findings."
+
+  - id: DEV-107
+    title: "Health check & quarantine-and-rebuild"
+    type: dev
+    milestone: M1
+    status: pending
+    implements: [FR-107]
+    spec: ["schema.md#health-check-and-recovery"]
+    depends_on: [DEV-106]
+    verified_by: QA-107
+    reviewed_by: REV-107
+    scope: >-
+      On every open: required tables exist (indexed_files, code_chunks,
+      symbols, edges, chunks_fts, meta) via sqlite_master; PRAGMA quick_check
+      returns exactly "ok"; meta values match (DEV-105 helper); foreign
+      user_version (DEV-106) fails the check. On failure: move index.db +
+      -wal/-shm sidecars to index.db.quarantine-<ISO-timestamp>; create fresh;
+      run migrations; flag "full re-index required"; record a recovery event
+      retrievable later by index_status (FR-604).
+    done_when: "QA-107 passes."
+
+  - id: QA-107
+    title: "Tests: recovery drill"
+    type: qa
+    milestone: M1
+    status: pending
+    implements: ["FR-107 acceptance (corrupted file quarantined with sidecars and rebuilt; fresh DB passes health check; higher user_version rebuilds)"]
+    depends_on: [DEV-107, QA-000]
+    scope: >-
+      Tests: a fresh database passes the health check; overwriting index.db
+      with garbage bytes -> open succeeds, quarantine file (with sidecars)
+      exists with ISO-stamped name, new database is healthy, recovery event
+      recorded; a higher-user_version database is quarantined and rebuilt; a
+      copied database (wrong repo_root) is rebuilt.
+    done_when: "Tests pass."
+
+  - id: REV-107
+    title: "Review: Health check & quarantine-and-rebuild"
+    type: rev
+    milestone: M1
+    status: pending
+    implements: ["Review gate for FR-107"]
+    spec: ["schema.md#health-check-and-recovery"]
+    depends_on: [DEV-107, QA-107]
+    done_when: "Review approved with no unresolved findings."
+
+  - id: DEV-108
+    title: "Write patterns"
+    type: dev
+    milestone: M1
+    status: pending
+    implements: [FR-108]
+    spec: ["schema.md#write-patterns"]
+    depends_on: [DEV-106]
+    verified_by: QA-108
+    reviewed_by: REV-108
+    scope: >-
+      upsertFile (by relative_path, returns id); replaceChunks(fileId, chunks)
+      as delete-then-insert (keeps FTS triggers sufficient), maintaining
+      chunk_count; same-pattern replacement for a file's symbols and edges;
+      stale-prune helper (delete indexed_files rows not in a seen-set); all
+      per-file writes wrapped in one transaction.
+    done_when: "QA-108 passes."
+
+  - id: QA-108
+    title: "Tests: write patterns & atomicity"
+    type: qa
+    milestone: M1
+    status: pending
+    implements: ["FR-108 acceptance"]
+    depends_on: [DEV-108, QA-000]
+    scope: >-
+      Tests: upsertFile twice with same path returns the same id with updated
+      fields; replaceChunks leaves chunk_count and FTS consistent; graph-row
+      replacement removes old rows and inserts fresh; a failure injected
+      mid-write rolls back the whole file (no half-indexed state); prune
+      helper cascades.
+    done_when: "Tests pass."
+
+  - id: REV-108
+    title: "Review: Write patterns"
+    type: rev
+    milestone: M1
+    status: pending
+    implements: ["Review gate for FR-108"]
+    spec: ["schema.md#write-patterns"]
+    depends_on: [DEV-108, QA-108]
+    done_when: "Review approved with no unresolved findings."
+
+  - id: GATE-M1
+    title: "Milestone gate: Scaffolding + storage layer"
+    type: gate
+    milestone: M1
+    status: pending
+    depends_on: [REV-000, REV-101, REV-102, REV-103, REV-104, REV-105, REV-106, REV-107, REV-108]
+    done_when: "All M1 REV nodes approved."
+
+  # ── M2 — Indexer pipeline + basic CLI ─────────────────────────────────────
+
+  - id: DEV-201
+    title: "File discovery"
+    type: dev
+    milestone: M2
+    status: pending
+    implements: [FR-201]
+    spec: ["indexing.md#file-discovery"]
+    depends_on: [DEV-000]
+    verified_by: QA-201
+    reviewed_by: REV-201
+    scope: >-
+      `git ls-files --cached --others --exclude-standard` from the repo root,
+      paths under .code-index/ excluded; non-git fallback: glob walk skipping
+      node_modules, .git, hidden directories, .code-index.
+    done_when: "QA-201 passes."
+
+  - id: QA-201
+    title: "Tests: discovery (git + fallback)"
+    type: qa
+    milestone: M2
+    status: pending
+    implements: ["FR-201 acceptance", "FR-200 acceptance (a non-git directory indexes via the fallback walker)"]
+    depends_on: [DEV-201, QA-000]
+    scope: >-
+      Tests on both fixture variants: git repo lists tracked + untracked files
+      but not gitignored ones or .code-index/; non-git walk skips
+      node_modules, hidden dirs, .git.
+    done_when: "Tests pass."
+
+  - id: REV-201
+    title: "Review: File discovery"
+    type: rev
+    milestone: M2
+    status: pending
+    implements: ["Review gate for FR-201"]
+    spec: ["indexing.md#file-discovery"]
+    depends_on: [DEV-201, QA-201]
+    done_when: "Review approved with no unresolved findings."
+
+  - id: DEV-202
+    title: "Language detection"
+    type: dev
+    milestone: M2
+    status: pending
+    implements: [FR-202]
+    spec: ["indexing.md#language-detection"]
+    depends_on: [DEV-000]
+    verified_by: QA-202
+    reviewed_by: REV-202
+    scope: >-
+      Extension -> language mapping for v1: js|mjs|cjs|jsx -> javascript,
+      ts|mts|cts -> typescript, tsx -> tsx; unrecognized extensions are
+      skipped entirely (staged languages stay out).
+    done_when: "QA-202 passes."
+
+  - id: QA-202
+    title: "Tests: language detection"
+    type: qa
+    milestone: M2
+    status: pending
+    implements: ["FR-202 acceptance"]
+    depends_on: [DEV-202, QA-000]
+    scope: >-
+      Table-driven test over all eight v1 extensions plus unknown ones (.json,
+      .py, .md, no extension) asserting skip.
+    done_when: "Tests pass."
+
+  - id: REV-202
+    title: "Review: Language detection"
+    type: rev
+    milestone: M2
+    status: pending
+    implements: ["Review gate for FR-202"]
+    spec: ["indexing.md#language-detection"]
+    depends_on: [DEV-202, QA-202]
+    done_when: "Review approved with no unresolved findings."
+
+  - id: DEV-203
+    title: "Change detection"
+    type: dev
+    milestone: M2
+    status: pending
+    implements: [FR-203]
+    spec: ["indexing.md#change-detection"]
+    depends_on: [DEV-108]
+    verified_by: QA-203
+    reviewed_by: REV-203
+    scope: >-
+      Per discovered file: skip > 1 MB; skip non-UTF-8 (decode failure =
+      binary); SHA-256 of raw bytes; skip when an indexed_files row matches
+      (relative_path, file_hash).
+    done_when: "QA-203 passes."
+
+  - id: QA-203
+    title: "Tests: change detection"
+    type: qa
+    milestone: M2
+    status: pending
+    implements: ["FR-203 acceptance", "FR-200 acceptance (a 1 MB+ file and a binary file are skipped)"]
+    depends_on: [DEV-203, QA-000]
+    scope: >-
+      Tests: a 1 MB+ fixture file is skipped; a binary (invalid UTF-8) file is
+      skipped; an unchanged file (matching hash row) is skipped; a content
+      change (new hash) is selected for re-index.
+    done_when: "Tests pass."
+
+  - id: REV-203
+    title: "Review: Change detection"
+    type: rev
+    milestone: M2
+    status: pending
+    implements: ["Review gate for FR-203"]
+    spec: ["indexing.md#change-detection"]
+    depends_on: [DEV-203, QA-203]
+    done_when: "Review approved with no unresolved findings."
+
+  - id: DEV-204
+    title: "Chunk extraction"
+    type: dev
+    milestone: M2
+    status: pending
+    implements: [FR-204]
+    spec: ["indexing.md#chunk-extraction"]
+    depends_on: [DEV-108, DEV-202]
+    verified_by: QA-204
+    reviewed_by: REV-204
+    scope: >-
+      tree-sitter parse; recursive walk emitting a code_chunks row per node in
+      the per-language meaningful-node-types allowlist (javascript and
+      typescript/tsx lists verbatim from the spec). Per chunk: node_name from
+      the node's name field; context_path of meaningful ancestors + self
+      joined with " > "; depth counting meaningful ancestors only; 1-indexed
+      lines; byte offsets; content capped at 2000 chars with "..." appended.
+      Nested meaningful nodes each get their own chunk (class chunk + one per
+      method).
+    done_when: "QA-204 passes."
+
+  - id: QA-204
+    title: "Tests: chunk extraction"
+    type: qa
+    milestone: M2
+    status: pending
+    implements: ["FR-204 acceptance"]
+    depends_on: [DEV-204, QA-000]
+    scope: >-
+      Golden-row tests per language (JS, TS, TSX fixtures): expected
+      node_type, node_name, context_path, depth, line numbers; a >2000-char
+      function is truncated with trailing "..." while its byte offsets still
+      slice the full body from the source file; a class yields its own chunk
+      plus per-method chunks.
+    done_when: "Tests pass."
+
+  - id: REV-204
+    title: "Review: Chunk extraction"
+    type: rev
+    milestone: M2
+    status: pending
+    implements: ["Review gate for FR-204"]
+    spec: ["indexing.md#chunk-extraction"]
+    depends_on: [DEV-204, QA-204]
+    done_when: "Review approved with no unresolved findings."
+
+  - id: DEV-205
+    title: "Stale pruning"
+    type: dev
+    milestone: M2
+    status: pending
+    implements: [FR-205]
+    spec: ["indexing.md#change-detection"]
+    depends_on: [DEV-108, DEV-201]
+    verified_by: QA-205
+    reviewed_by: REV-205
+    scope: >-
+      At end of every run, delete indexed_files rows whose relative_path was
+      not seen during discovery; cascades remove chunks, symbols, edges (uses
+      DEV-108's prune helper).
+    done_when: "QA-205 passes."
+
+  - id: QA-205
+    title: "Tests: stale pruning"
+    type: qa
+    milestone: M2
+    status: pending
+    implements: ["FR-205 acceptance", "FR-200 acceptance (deleting a file removes all its rows via cascade)"]
+    depends_on: [DEV-205, QA-000]
+    scope: >-
+      Test: index fixture; delete one source file; re-run; its indexed_files,
+      code_chunks (and FTS mirror) rows are gone.
+    done_when: "Tests pass."
+
+  - id: REV-205
+    title: "Review: Stale pruning"
+    type: rev
+    milestone: M2
+    status: pending
+    implements: ["Review gate for FR-205"]
+    spec: ["indexing.md#change-detection"]
+    depends_on: [DEV-205, QA-205]
+    done_when: "Review approved with no unresolved findings."
+
+  - id: DEV-206
+    title: "Pipeline orchestration"
+    type: dev
+    milestone: M2
+    status: pending
+    implements: [FR-206]
+    spec: ["indexing.md#pipeline-overview"]
+    depends_on: [DEV-201, DEV-202, DEV-203, DEV-204, DEV-205]
+    verified_by: QA-206
+    reviewed_by: REV-206
+    scope: >-
+      Wire discover -> filter -> hash/diff -> parse -> chunk -> (extraction
+      hook, filled by M3) -> (resolution hook, filled by M3) -> persist ->
+      prune. One transaction per file for parse->persist; the resolution hook
+      runs once per run after all changed files are written; return a run
+      delta (files added/updated/removed, duration) for reindex/CLI use.
+    done_when: "QA-206 passes."
+
+  - id: QA-206
+    title: "Tests: incremental pipeline"
+    type: qa
+    milestone: M2
+    status: pending
+    implements: ["FR-206 acceptance (first run indexes all eligible files; immediate second run writes zero rows; editing one file re-indexes only it)"]
+    depends_on: [DEV-206, QA-000]
+    scope: >-
+      Tests: first run indexes every eligible fixture file; an immediate
+      second run performs zero row writes (assert via SQLite total_changes or
+      unchanged last_indexed values); editing one file re-indexes only that
+      file.
+    done_when: "Tests pass."
+
+  - id: REV-206
+    title: "Review: Pipeline orchestration"
+    type: rev
+    milestone: M2
+    status: pending
+    implements: ["Review gate for FR-206"]
+    spec: ["indexing.md#pipeline-overview"]
+    depends_on: [DEV-206, QA-206]
+    done_when: "Review approved with no unresolved findings."
+
+  - id: DEV-701
+    title: "CLI: index"
+    type: dev
+    milestone: M2
+    status: pending
+    implements: [FR-701]
+    spec: ["indexing.md#cli-entry-points-planned"]
+    depends_on: [DEV-206]
+    verified_by: QA-701
+    reviewed_by: REV-701
+    scope: >-
+      `code-index index [path]` runs an incremental pipeline run (path
+      defaults to cwd); --full clears all rows first, then runs. Print the run
+      delta.
+    done_when: "QA-701 passes."
+
+  - id: QA-701
+    title: "Tests: index command"
+    type: qa
+    milestone: M2
+    status: pending
+    implements: ["FR-701 / FR-700 acceptance"]
+    depends_on: [DEV-701, QA-000]
+    scope: >-
+      Tests invoking the CLI against a fixture: first run populates the DB;
+      --full after an edit rebuilds from empty and converges to the same row
+      counts.
+    done_when: "Tests pass."
+
+  - id: REV-701
+    title: "Review: CLI: index"
+    type: rev
+    milestone: M2
+    status: pending
+    implements: ["Review gate for FR-701"]
+    spec: ["indexing.md#cli-entry-points-planned"]
+    depends_on: [DEV-701, QA-701]
+    done_when: "Review approved with no unresolved findings."
+
+  - id: DEV-702
+    title: "CLI: stats"
+    type: dev
+    milestone: M2
+    status: pending
+    implements: [FR-702]
+    depends_on: [DEV-206]
+    verified_by: QA-702
+    reviewed_by: REV-702
+    scope: >-
+      `code-index stats` prints files/chunks/symbols per language,
+      unresolved-edge count, last run time (symbols/edges read as 0 until M3
+      lands).
+    done_when: "QA-702 passes."
+
+  - id: QA-702
+    title: "Tests: stats command"
+    type: qa
+    milestone: M2
+    status: pending
+    implements: ["FR-702 acceptance (stats output matches database contents)"]
+    depends_on: [DEV-702, QA-000]
+    scope: >-
+      Test: index a fixture, run stats, parse output, assert counts equal
+      direct SQL counts.
+    done_when: "Tests pass."
+
+  - id: REV-702
+    title: "Review: CLI: stats"
+    type: rev
+    milestone: M2
+    status: pending
+    implements: ["Review gate for FR-702"]
+    depends_on: [DEV-702, QA-702]
+    done_when: "Review approved with no unresolved findings."
+
+  - id: DEV-703
+    title: "CLI: clear"
+    type: dev
+    milestone: M2
+    status: pending
+    implements: [FR-703]
+    depends_on: [DEV-108]
+    verified_by: QA-703
+    reviewed_by: REV-703
+    scope: >-
+      `code-index clear` deletes all rows (or removes the whole .code-index/
+      directory).
+    done_when: "QA-703 passes."
+
+  - id: QA-703
+    title: "Tests: clear command"
+    type: qa
+    milestone: M2
+    status: pending
+    implements: ["FR-703 acceptance"]
+    depends_on: [DEV-703, QA-000]
+    scope: >-
+      Test: after indexing, clear leaves an empty index (zero rows or no
+      .code-index/); a subsequent index run works from scratch.
+    done_when: "Tests pass."
+
+  - id: REV-703
+    title: "Review: CLI: clear"
+    type: rev
+    milestone: M2
+    status: pending
+    implements: ["Review gate for FR-703"]
+    depends_on: [DEV-703, QA-703]
+    done_when: "Review approved with no unresolved findings."
+
+  - id: DEV-705
+    title: "Package bin wiring"
+    type: dev
+    milestone: M2
+    status: pending
+    implements: [FR-705]
+    depends_on: [DEV-000, DEV-701]
+    verified_by: QA-705
+    reviewed_by: REV-705
+    scope: >-
+      Finalize the bin entry started in DEV-000 so `npx code-index ...` works:
+      shebang, built entry point, command dispatch (index, stats, clear; serve
+      added in M5).
+    done_when: "QA-705 passes."
+
+  - id: QA-705
+    title: "Tests: bin invocation"
+    type: qa
+    milestone: M2
+    status: pending
+    implements: ["FR-705 acceptance (the three README quick-start commands work against a real repo)"]
+    depends_on: [DEV-705, QA-000]
+    scope: >-
+      Test executing the packaged bin (direct `node <bin>` or `npm pack`-based)
+      running index, stats, clear against a fixture end-to-end.
+    done_when: "Tests pass."
+
+  - id: REV-705
+    title: "Review: Package bin wiring"
+    type: rev
+    milestone: M2
+    status: pending
+    implements: ["Review gate for FR-705"]
+    depends_on: [DEV-705, QA-705]
+    done_when: "Review approved with no unresolved findings."
+
+  - id: GATE-M2
+    title: "Milestone gate: Indexer pipeline + basic CLI"
+    type: gate
+    milestone: M2
+    status: pending
+    depends_on: [REV-201, REV-202, REV-203, REV-204, REV-205, REV-206, REV-701, REV-702, REV-703, REV-705]
+    done_when: "All M2 REV nodes approved."
+
+  # ── M3 — Symbol graph ─────────────────────────────────────────────────────
+
+  - id: DEV-301
+    title: "Tree-sitter query files"
+    type: dev
+    milestone: M3
+    status: pending
+    implements: [FR-301]
+    spec: ["indexing.md#symbol-and-edge-extraction-new", "ast-graph.md#construction"]
+    depends_on: [DEV-204]
+    verified_by: QA-301
+    reviewed_by: REV-301
+    scope: >-
+      queries/javascript/{symbols,edges}.scm and
+      queries/typescript/{symbols,edges}.scm (typescript set serves tsx too);
+      loader that compiles them per grammar; extraction runs against the same
+      parse tree used for chunking — no second parse.
+    done_when: "QA-301 passes."
+
+  - id: QA-301
+    title: "Tests: query files compile & capture"
+    type: qa
+    milestone: M3
+    status: pending
+    implements: ["FR-301 acceptance"]
+    depends_on: [DEV-301, QA-000]
+    scope: >-
+      Tests: all four .scm files compile against their grammars (including the
+      tsx grammar — PRD §8 grammar-quirk risk); running them on fixture trees
+      yields captures; the extraction API accepts an existing tree (no
+      re-parse).
+    done_when: "Tests pass."
+
+  - id: REV-301
+    title: "Review: Tree-sitter query files"
+    type: rev
+    milestone: M3
+    status: pending
+    implements: ["Review gate for FR-301"]
+    spec: ["indexing.md#symbol-and-edge-extraction-new", "ast-graph.md#construction"]
+    depends_on: [DEV-301, QA-301]
+    done_when: "Review approved with no unresolved findings."
+
+  - id: DEV-302
+    title: "Symbol extraction"
+    type: dev
+    milestone: M3
+    status: pending
+    implements: [FR-302]
+    spec: ["ast-graph.md#node-model"]
+    depends_on: [DEV-301]
+    verified_by: QA-302
+    reviewed_by: REV-302
+    scope: >-
+      Declarations -> symbols rows: functions, classes, methods, exported
+      consts/lets, interfaces, type aliases, enums. kind mapped from node
+      type; one-line token-cheap signature (params + TS return annotation, per
+      the mapping-table examples); exported for ESM export and CJS
+      module.exports; chunk_id linked to the body chunk when one exists.
+    done_when: "QA-302 passes."
+
+  - id: QA-302
+    title: "Tests: symbol rows"
+    type: qa
+    milestone: M3
+    status: pending
+    implements: ["FR-302 / FR-300 acceptance (extracted symbols match expected rows)"]
+    depends_on: [DEV-302, QA-000]
+    scope: >-
+      Golden-row tests per language covering every kind; signature strings
+      match ast-graph.md's mapping examples; exported correct for ESM and CJS;
+      each symbol's chunk_id points at its body chunk.
+    done_when: "Tests pass."
+
+  - id: REV-302
+    title: "Review: Symbol extraction"
+    type: rev
+    milestone: M3
+    status: pending
+    implements: ["Review gate for FR-302"]
+    spec: ["ast-graph.md#node-model"]
+    depends_on: [DEV-302, QA-302]
+    done_when: "Review approved with no unresolved findings."
+
+  - id: DEV-303
+    title: "Edge extraction"
+    type: dev
+    milestone: M3
+    status: pending
+    implements: [FR-303]
+    spec: ["ast-graph.md#edge-model"]
+    depends_on: [DEV-301]
+    verified_by: QA-303
+    reviewed_by: REV-303
+    scope: >-
+      Six directed edge types: calls (callee identifier, or property name for
+      obj.method()), imports (one edge per specifier, target_module = source
+      string), exports, references (non-call identifier uses of known symbol
+      names), extends, implements (TS). Every edge records source_file_id,
+      source_symbol_id (innermost enclosing symbol, NULL at file scope),
+      target_name (always populated), line. Extraction writes
+      target_symbol_id = NULL.
+    done_when: "QA-303 passes."
+
+  - id: QA-303
+    title: "Tests: edge rows"
+    type: qa
+    milestone: M3
+    status: pending
+    implements: ["FR-303 / FR-300 acceptance (edges match expected rows)"]
+    depends_on: [DEV-303, QA-000]
+    scope: >-
+      Golden-row tests: one fixture exercising all six edge types;
+      obj.method() records the property name; top-level imports carry
+      source_symbol_id = NULL and correct target_module; a call inside a
+      function attributes to that innermost symbol.
+    done_when: "Tests pass."
+
+  - id: REV-303
+    title: "Review: Edge extraction"
+    type: rev
+    milestone: M3
+    status: pending
+    implements: ["Review gate for FR-303"]
+    spec: ["ast-graph.md#edge-model"]
+    depends_on: [DEV-303, QA-303]
+    done_when: "Review approved with no unresolved findings."
+
+  - id: DEV-304
+    title: "Edge resolution pass"
+    type: dev
+    milestone: M3
+    status: pending
+    implements: [FR-304]
+    spec: ["indexing.md#edge-resolution"]
+    depends_on: [DEV-302, DEV-303, DEV-206]
+    verified_by: QA-304
+    reviewed_by: REV-304
+    scope: >-
+      After the batch persists, resolve in order: (1) import-based — resolve
+      the specifier via simplified Node resolution (relative path + extension
+      guessing [.js, .ts, .tsx, /index.*]), link the named or default export;
+      (2) same-file declaration; (3) unique-name fallback across exported
+      symbols repo-wide; (4) leave target_symbol_id = NULL. package.json
+      exports maps and tsconfig path aliases are explicitly out of scope. Runs
+      in DEV-206's resolution hook.
+    done_when: "QA-304 passes."
+
+  - id: QA-304
+    title: "Tests: resolution ladder"
+    type: qa
+    milestone: M3
+    status: pending
+    implements: ["FR-304 / FR-300 acceptance (a cross-file call resolves via its import; an ambiguous method name stays unresolved)"]
+    depends_on: [DEV-304, QA-000]
+    scope: >-
+      Tests: cross-file call resolves through its import (including
+      extensionless ./x -> x.ts and ./dir -> dir/index.ts); same-file call
+      resolves; a uniquely-named exported symbol resolves via fallback; two
+      classes with the same method name -> edge stays NULL; an import from
+      react/node_modules stays unresolved with target_module populated.
+    done_when: "Tests pass."
+
+  - id: REV-304
+    title: "Review: Edge resolution pass"
+    type: rev
+    milestone: M3
+    status: pending
+    implements: ["Review gate for FR-304"]
+    spec: ["indexing.md#edge-resolution"]
+    depends_on: [DEV-304, QA-304]
+    done_when: "Review approved with no unresolved findings."
+
+  - id: DEV-305
+    title: "Incremental re-resolution"
+    type: dev
+    milestone: M3
+    status: pending
+    implements: [FR-305]
+    spec: ["indexing.md#edge-resolution"]
+    depends_on: [DEV-304]
+    verified_by: QA-305
+    reviewed_by: REV-305
+    scope: >-
+      When file F is re-indexed: edges from F are dropped and re-extracted
+      (cascade handles it); compute the set of symbol names F gained or lost;
+      re-resolve edges elsewhere whose target_name is in that set (lookup via
+      idx_edges_target_name). No other edges are touched.
+    done_when: "QA-305 passes."
+
+  - id: QA-305
+    title: "Tests: rename re-resolution"
+    type: qa
+    milestone: M3
+    status: pending
+    implements: ["FR-305 / FR-300 acceptance (renaming an exported symbol in one file re-resolves inbound edges from other files without re-indexing them)"]
+    depends_on: [DEV-305, QA-000]
+    scope: >-
+      Tests: rename an exported symbol in F, re-run; inbound edges in other
+      files now resolve to the new symbol (or drop to NULL for the old name)
+      while those files' last_indexed values are unchanged; unrelated edges
+      keep their ids/values.
+    done_when: "Tests pass."
+
+  - id: REV-305
+    title: "Review: Incremental re-resolution"
+    type: rev
+    milestone: M3
+    status: pending
+    implements: ["Review gate for FR-305"]
+    spec: ["indexing.md#edge-resolution"]
+    depends_on: [DEV-305, QA-305]
+    done_when: "Review approved with no unresolved findings."
+
+  - id: DEV-306
+    title: "Documented limitations preserved"
+    type: dev
+    milestone: M3
+    status: pending
+    implements: [FR-306]
+    spec: ["indexing.md#known-limitations"]
+    depends_on: [DEV-304]
+    verified_by: QA-306
+    reviewed_by: REV-306
+    scope: >-
+      Ensure the four accepted limitations (no type inference; dynamic
+      constructs invisible; re-exports/aliases one level; repo-local
+      resolution) hold as designed — not "fixed" — and are stated in code docs
+      where consumers read edge data, so unresolved edges are treated as
+      hints.
+    done_when: "QA-306 passes."
+
+  - id: QA-306
+    title: "Tests: limitations behave as documented"
+    type: qa
+    milestone: M3
+    status: pending
+    implements: ["FR-306 acceptance"]
+    depends_on: [DEV-306, QA-000]
+    scope: >-
+      Tests: a dynamic import(variable) and computed call produce no
+      misleading resolved edge; an aliased import (import { a as b }) resolves
+      one level; ambiguous names remain present-but-unresolved (visible with
+      target_name, not dropped).
+    done_when: "Tests pass."
+
+  - id: REV-306
+    title: "Review: Documented limitations preserved"
+    type: rev
+    milestone: M3
+    status: pending
+    implements: ["Review gate for FR-306"]
+    spec: ["indexing.md#known-limitations"]
+    depends_on: [DEV-306, QA-306]
+    done_when: "Review approved with no unresolved findings."
+
+  - id: GATE-M3
+    title: "Milestone gate: Symbol graph"
+    type: gate
+    milestone: M3
+    status: pending
+    depends_on: [REV-301, REV-302, REV-303, REV-304, REV-305, REV-306]
+    done_when: "All M3 REV nodes approved."
+
+  # ── M4 — Query layer ──────────────────────────────────────────────────────
+
+  - id: DEV-401
+    title: "Text search (FTS)"
+    type: dev
+    milestone: M4
+    status: pending
+    implements: [FR-401]
+    spec: ["search.md#text-search-fts5"]
+    depends_on: [DEV-104, DEV-206]
+    verified_by: QA-401
+    reviewed_by: REV-401
+    scope: >-
+      search_code query function: FTS5 MATCH over content + node_name, bm25()
+      ranking, snippet() excerpts; expose the FTS5 syntax subset (terms,
+      phrases, prefix, NEAR, column filters); limit and path_prefix params.
+    done_when: "QA-401 passes."
+
+  - id: QA-401
+    title: "Tests: FTS search modes"
+    type: qa
+    milestone: M4
+    status: pending
+    implements: ["FR-401 acceptance"]
+    depends_on: [DEV-401, QA-000]
+    scope: >-
+      Tests per syntax mode (term, phrase, prefix, NEAR, column filter)
+      against an indexed fixture: expected hits, bm25 ordering, snippet
+      markers present, path_prefix filtering.
+    done_when: "Tests pass."
+
+  - id: REV-401
+    title: "Review: Text search (FTS)"
+    type: rev
+    milestone: M4
+    status: pending
+    implements: ["Review gate for FR-401"]
+    spec: ["search.md#text-search-fts5"]
+    depends_on: [DEV-401, QA-401]
+    done_when: "Review approved with no unresolved findings."
+
+  - id: DEV-402
+    title: "Seven graph queries"
+    type: dev
+    milestone: M4
+    status: pending
+    implements: [FR-402]
+    spec: ["ast-graph.md#query-use-cases"]
+    depends_on: [DEV-304]
+    verified_by: QA-402
+    reviewed_by: REV-402
+    scope: >-
+      Implement the seven queries from their SQL sketches: who-calls
+      (including unresolved name-matches, flagged); outbound dependencies;
+      transitive impact closure (recursive CTE, cycle-safe via UNION,
+      depth-capped, default 3); file/module dependency map (aggregating
+      target_module so unresolved edges count); class hierarchy (ancestors +
+      descendants, depth-capped); dead exports (excluding symbols possibly
+      targeted by unresolved edges); file outline.
+    done_when: "QA-402 passes."
+
+  - id: QA-402
+    title: "Tests: graph queries"
+    type: qa
+    milestone: M4
+    status: pending
+    implements: ["FR-402 / FR-400 acceptance (each decision-matrix row answerable; a cyclic call graph terminates with correct distances; dead-exports does not flag symbols matched by unresolved edges)"]
+    depends_on: [DEV-402, QA-000]
+    scope: >-
+      Tests: each index-backed decision-matrix row (search.md#decision-matrix)
+      answered correctly on a fixture; a fixture with a call cycle terminates
+      with correct minimum distances; dead-exports skips symbols whose name
+      matches an unresolved edge; hierarchy works both directions; module map
+      includes node_modules specifiers via target_module.
+    done_when: "Tests pass."
+
+  - id: REV-402
+    title: "Review: Seven graph queries"
+    type: rev
+    milestone: M4
+    status: pending
+    implements: ["Review gate for FR-402"]
+    spec: ["ast-graph.md#query-use-cases"]
+    depends_on: [DEV-402, QA-402]
+    done_when: "Review approved with no unresolved findings."
+
+  - id: DEV-403
+    title: "Result envelope"
+    type: dev
+    milestone: M4
+    status: pending
+    implements: [FR-403]
+    spec: ["search.md#result-normalization"]
+    depends_on: [DEV-401, DEV-402]
+    verified_by: QA-403
+    reviewed_by: REV-403
+    scope: >-
+      All modes return {path, lines, preview, id}; id only for index-backed
+      results; graph results are {id, name, kind, signature, path, line}
+      tuples — never bodies; unresolved matches carry resolved: false.
+    done_when: "QA-403 passes."
+
+  - id: QA-403
+    title: "Tests: envelope conformance"
+    type: qa
+    milestone: M4
+    status: pending
+    implements: ["FR-403 acceptance"]
+    depends_on: [DEV-403, QA-000]
+    scope: >-
+      Shape tests over every query function's output: envelope keys, no
+      body/content fields in graph results, resolved: false present exactly
+      on unresolved matches.
+    done_when: "Tests pass."
+
+  - id: REV-403
+    title: "Review: Result envelope"
+    type: rev
+    milestone: M4
+    status: pending
+    implements: ["Review gate for FR-403"]
+    spec: ["search.md#result-normalization"]
+    depends_on: [DEV-403, QA-403]
+    done_when: "Review approved with no unresolved findings."
+
+  - id: DEV-404
+    title: "Caps & truncation"
+    type: dev
+    milestone: M4
+    status: pending
+    implements: [FR-404]
+    depends_on: [DEV-403]
+    verified_by: QA-404
+    reviewed_by: REV-404
+    scope: >-
+      limit (default 20-50 per query) and max_depth (default 3) as
+      first-class parameters on every list-returning query; every truncated
+      response says so (truncated: true).
+    done_when: "QA-404 passes."
+
+  - id: QA-404
+    title: "Tests: caps honored"
+    type: qa
+    milestone: M4
+    status: pending
+    implements: ["FR-404 acceptance"]
+    depends_on: [DEV-404, QA-000]
+    scope: >-
+      Tests: results beyond limit are cut with truncated: true; under-limit
+      results report no truncation; max_depth bounds the impact closure.
+    done_when: "Tests pass."
+
+  - id: REV-404
+    title: "Review: Caps & truncation"
+    type: rev
+    milestone: M4
+    status: pending
+    implements: ["Review gate for FR-404"]
+    depends_on: [DEV-404, QA-404]
+    done_when: "Review approved with no unresolved findings."
+
+  - id: GATE-M4
+    title: "Milestone gate: Query layer"
+    type: gate
+    milestone: M4
+    status: pending
+    depends_on: [REV-401, REV-402, REV-403, REV-404]
+    done_when: "All M4 REV nodes approved."
+
+  # ── M5 — MCP server ───────────────────────────────────────────────────────
+
+  - id: DEV-601
+    title: "Server shell & startup"
+    type: dev
+    milestone: M5
+    status: pending
+    implements: [FR-601]
+    spec: ["mcp-server.md"]
+    depends_on: [DEV-107, DEV-206]
+    verified_by: QA-601
+    reviewed_by: REV-601
+    scope: >-
+      Stdio MCP server on @modelcontextprotocol/sdk; repo root as startup
+      argument; on startup open with health-check/recovery (DEV-107), then
+      kick off an incremental reindex in the background without blocking the
+      first tool call.
+    done_when: "QA-601 passes."
+
+  - id: QA-601
+    title: "Tests: startup behavior"
+    type: qa
+    milestone: M5
+    status: pending
+    implements: ["FR-601 / FR-600 acceptance (first tool call succeeds while startup reindex is still running)"]
+    depends_on: [DEV-601, QA-000]
+    scope: >-
+      Tests (MCP client over stdio against a spawned server): initialize
+      handshake succeeds; a tool call issued immediately at startup succeeds
+      while the background reindex is still running (large fixture or
+      injected delay); a corrupted database at startup is quarantined and the
+      server still comes up.
+    done_when: "Tests pass."
+
+  - id: REV-601
+    title: "Review: Server shell & startup"
+    type: rev
+    milestone: M5
+    status: pending
+    implements: ["Review gate for FR-601"]
+    spec: ["mcp-server.md"]
+    depends_on: [DEV-601, QA-601]
+    done_when: "Review approved with no unresolved findings."
+
+  - id: DEV-602
+    title: "Tool catalog (11 tools)"
+    type: dev
+    milestone: M5
+    status: pending
+    implements: [FR-602]
+    spec: ["mcp-server.md#tool-catalog"]
+    depends_on: [DEV-601, DEV-404]
+    verified_by: QA-602
+    reviewed_by: REV-602
+    scope: >-
+      Register all 11 tools with the params/returns in the catalog:
+      index_status, reindex, search_code, search_structural (stub until M6 —
+      returns the FR-503 missing-prerequisite error until DEV-501 lands),
+      get_chunk, file_outline, find_symbol, who_calls, get_dependencies,
+      impact_of_change, module_map. Tools delegate to the M4 query layer and
+      DEV-206 pipeline.
+    done_when: "QA-602 passes."
+
+  - id: QA-602
+    title: "Tests: catalog & worked example"
+    type: qa
+    milestone: M5
+    status: pending
+    implements: ["FR-602 / FR-600 acceptance (the worked rename session executes end-to-end with responses matching the documented shapes)"]
+    depends_on: [DEV-602, QA-000]
+    scope: >-
+      Tests: tools/list returns all 11 with expected schemas; each tool
+      invoked on a fixture returns its documented shape; the worked rename
+      session (mcp-server.md#example-agent-session: find_symbol -> who_calls
+      -> get_chunk -> edit -> reindex) executes end-to-end with correct
+      results.
+    done_when: "Tests pass."
+
+  - id: REV-602
+    title: "Review: Tool catalog (11 tools)"
+    type: rev
+    milestone: M5
+    status: pending
+    implements: ["Review gate for FR-602"]
+    spec: ["mcp-server.md#tool-catalog"]
+    depends_on: [DEV-602, QA-602]
+    done_when: "Review approved with no unresolved findings."
+
+  - id: DEV-603
+    title: "Design rules enforcement"
+    type: dev
+    milestone: M5
+    status: pending
+    implements: [FR-603]
+    spec: ["mcp-server.md#design-rules"]
+    depends_on: [DEV-602]
+    verified_by: QA-603
+    reviewed_by: REV-603
+    scope: >-
+      Summaries by default — bodies only via get_chunk; every list
+      capped/paginated with truncated flags (reusing DEV-404); every result
+      carries an id and path + line range.
+    done_when: "QA-603 passes."
+
+  - id: QA-603
+    title: "Tests: design-rule conformance"
+    type: qa
+    milestone: M5
+    status: pending
+    implements: ["FR-603 acceptance"]
+    depends_on: [DEV-603, QA-000]
+    scope: >-
+      Parametrized test over every list-returning tool: no full-source fields
+      outside get_chunk; caps + truncated flags present; id/path/lines on
+      every result.
+    done_when: "Tests pass."
+
+  - id: REV-603
+    title: "Review: Design rules enforcement"
+    type: rev
+    milestone: M5
+    status: pending
+    implements: ["Review gate for FR-603"]
+    spec: ["mcp-server.md#design-rules"]
+    depends_on: [DEV-603, QA-603]
+    done_when: "Review approved with no unresolved findings."
+
+  - id: DEV-604
+    title: "Staleness & confidence signals"
+    type: dev
+    milestone: M5
+    status: pending
+    implements: [FR-604]
+    spec: ["mcp-server.md#error-and-staleness-behavior"]
+    depends_on: [DEV-602]
+    verified_by: QA-604
+    reviewed_by: REV-604
+    scope: >-
+      Every index-backed response includes index_age_seconds
+      (search_structural exempt); graph tools include unresolved_edges counts
+      for the traversed region; index_status reports quarantine/rebuild
+      events (from DEV-107's recorded events).
+    done_when: "QA-604 passes."
+
+  - id: QA-604
+    title: "Tests: signals present"
+    type: qa
+    milestone: M5
+    status: pending
+    implements: ["FR-604 acceptance"]
+    depends_on: [DEV-604, QA-000]
+    scope: >-
+      Tests: index_age_seconds on every index-backed tool response and absent
+      from search_structural; unresolved_edges on graph tool responses
+      matches fixture ground truth; after a forced quarantine, index_status
+      reports it.
+    done_when: "Tests pass."
+
+  - id: REV-604
+    title: "Review: Staleness & confidence signals"
+    type: rev
+    milestone: M5
+    status: pending
+    implements: ["Review gate for FR-604"]
+    spec: ["mcp-server.md#error-and-staleness-behavior"]
+    depends_on: [DEV-604, QA-604]
+    done_when: "Review approved with no unresolved findings."
+
+  - id: DEV-704
+    title: "CLI: serve"
+    type: dev
+    milestone: M5
+    status: pending
+    implements: [FR-704]
+    depends_on: [DEV-601, DEV-705]
+    verified_by: QA-704
+    reviewed_by: REV-704
+    scope: >-
+      `code-index serve [path]` starts the MCP server for the given repo root
+      (dispatch added to the DEV-705 bin).
+    done_when: "QA-704 passes."
+
+  - id: QA-704
+    title: "Tests: serve & registration"
+    type: qa
+    milestone: M5
+    status: pending
+    implements: ["FR-704 / FR-600 acceptance (the server registers via .mcp.json / claude mcp add as shown)"]
+    depends_on: [DEV-704, QA-000]
+    scope: >-
+      Tests: spawning the bin with `serve .` yields a server that completes an
+      MCP initialize handshake over stdio — i.e., the exact command shape from
+      the registration example (mcp-server.md#registration) works.
+    done_when: "Tests pass."
+
+  - id: REV-704
+    title: "Review: CLI: serve"
+    type: rev
+    milestone: M5
+    status: pending
+    implements: ["Review gate for FR-704"]
+    depends_on: [DEV-704, QA-704]
+    done_when: "Review approved with no unresolved findings."
+
+  - id: GATE-M5
+    title: "Milestone gate: MCP server"
+    type: gate
+    milestone: M5
+    status: pending
+    depends_on: [REV-601, REV-602, REV-603, REV-604, REV-704]
+    done_when: "All M5 REV nodes approved."
+
+  # ── M6 — Structural search (parallel-eligible with M3/M4) ─────────────────
+
+  - id: DEV-501
+    title: "ast-grep invocation"
+    type: dev
+    milestone: M6
+    status: pending
+    implements: [FR-501]
+    spec: ["search.md#structural-search-ast-grep"]
+    depends_on: [DEV-601]
+    verified_by: QA-501
+    reviewed_by: REV-501
+    scope: >-
+      Shell out to the ast-grep CLI with --json: `ast-grep run --pattern <p>
+      --lang <lang> --json <paths>` for single-node patterns; `ast-grep scan
+      --inline-rules <yaml> --json <paths>` for YAML rules. Parse JSON into
+      the shared envelope (no id; matched text as preview). Always parses the
+      live working tree — never the database. Pin/document a minimum ast-grep
+      version (PRD §8 output-drift risk). Registered as the search_structural
+      tool when DEV-602's catalog lands (DEV-602 ships the FR-503 stub until
+      then).
+    done_when: "QA-501 passes."
+
+  - id: QA-501
+    title: "Tests: pattern & rule queries, freshness"
+    type: qa
+    milestone: M6
+    status: pending
+    implements: ["FR-501 / FR-500 acceptance (a pattern query and an inline-rules query both return normalized results; an edit made after the last index run is found)"]
+    depends_on: [DEV-501, QA-000]
+    scope: >-
+      Tests (ast-grep binary installed in the test environment): a --pattern
+      query and an --inline-rules query each return normalized envelope
+      results; freshness drill — edit a fixture file after the last index run
+      and confirm search_structural finds the new code while search_code does
+      not.
+    done_when: "Tests pass."
+
+  - id: REV-501
+    title: "Review: ast-grep invocation"
+    type: rev
+    milestone: M6
+    status: pending
+    implements: ["Review gate for FR-501"]
+    spec: ["search.md#structural-search-ast-grep"]
+    depends_on: [DEV-501, QA-501]
+    done_when: "Review approved with no unresolved findings."
+
+  - id: DEV-502
+    title: "Scope control"
+    type: dev
+    milestone: M6
+    status: pending
+    implements: [FR-502]
+    depends_on: [DEV-501]
+    verified_by: QA-502
+    reviewed_by: REV-502
+    scope: >-
+      Accept a paths filter passed through to ast-grep; optionally pre-filter
+      candidate files via the index (restrict to the pattern's language, or
+      to files matching an FTS keyword) before invoking.
+    done_when: "QA-502 passes."
+
+  - id: QA-502
+    title: "Tests: scoping"
+    type: qa
+    milestone: M6
+    status: pending
+    implements: ["FR-502 acceptance"]
+    depends_on: [DEV-502, QA-000]
+    scope: >-
+      Tests: paths restricts matches to the given subtree; with index
+      pre-filtering enabled, the ast-grep invocation receives only the
+      candidate file list (assert on spawn arguments).
+    done_when: "Tests pass."
+
+  - id: REV-502
+    title: "Review: Scope control"
+    type: rev
+    milestone: M6
+    status: pending
+    implements: ["Review gate for FR-502"]
+    depends_on: [DEV-502, QA-502]
+    done_when: "Review approved with no unresolved findings."
+
+  - id: DEV-503
+    title: "Missing-binary handling"
+    type: dev
+    milestone: M6
+    status: pending
+    implements: [FR-503]
+    depends_on: [DEV-501]
+    verified_by: QA-503
+    reviewed_by: REV-503
+    scope: >-
+      When ast-grep is not on PATH, return a distinguishable error naming the
+      missing prerequisite and how to install it. It is a runtime prerequisite
+      for search_structural only — never a hard install dependency.
+    done_when: "QA-503 passes."
+
+  - id: QA-503
+    title: "Tests: graceful degradation"
+    type: qa
+    milestone: M6
+    status: pending
+    implements: ["FR-503 / FR-500 acceptance (with the binary absent, the error names the missing prerequisite while all other tools keep working)"]
+    depends_on: [DEV-503, QA-000]
+    scope: >-
+      Tests with a PATH lacking ast-grep: search_structural returns the
+      named-prerequisite error; every other tool on the server still answers
+      normally.
+    done_when: "Tests pass."
+
+  - id: REV-503
+    title: "Review: Missing-binary handling"
+    type: rev
+    milestone: M6
+    status: pending
+    implements: ["Review gate for FR-503"]
+    depends_on: [DEV-503, QA-503]
+    done_when: "Review approved with no unresolved findings."
+
+  - id: GATE-M6
+    title: "Milestone gate: Structural search"
+    type: gate
+    milestone: M6
+    status: pending
+    depends_on: [REV-501, REV-502, REV-503]
+    done_when: "All M6 REV nodes approved."
+
+  # ── M7 — Hardening & dogfood ──────────────────────────────────────────────
+
+  - id: DEV-801
+    title: "End-to-end recovery drills"
+    type: dev
+    milestone: M7
+    status: pending
+    implements: ["PRD §4 robustness metric"]
+    spec: ["schema.md#health-check-and-recovery"]
+    depends_on: [DEV-604]
+    verified_by: QA-801
+    reviewed_by: REV-801
+    scope: >-
+      Automate full-system drills beyond QA-107's unit level: corruption
+      discovered at server startup, foreign user_version, copied database
+      (wrong repo_root) — each through the running MCP server, ending in a
+      healthy rebuilt index and an index_status report. Fix anything the
+      drills expose.
+    done_when: "QA-801 passes."
+
+  - id: QA-801
+    title: "Tests: recovery drills in CI"
+    type: qa
+    milestone: M7
+    status: pending
+    implements: ["PRD §4 (a corrupted or foreign database never crashes the server)"]
+    depends_on: [DEV-801, QA-000]
+    scope: >-
+      The three drills as automated tests: server never crashes, quarantine
+      files exist, rebuild completes, event surfaces via index_status.
+    done_when: "Tests pass."
+
+  - id: REV-801
+    title: "Review: End-to-end recovery drills"
+    type: rev
+    milestone: M7
+    status: pending
+    implements: ["Review gate for PRD §4 robustness metric"]
+    spec: ["schema.md#health-check-and-recovery"]
+    depends_on: [DEV-801, QA-801]
+    done_when: "Review approved with no unresolved findings."
+
+  - id: DEV-802
+    title: "Limit & truncation audit"
+    type: dev
+    milestone: M7
+    status: pending
+    implements: ["FR-404/FR-603 across the full surface"]
+    depends_on: [DEV-604]
+    verified_by: QA-802
+    reviewed_by: REV-802
+    scope: >-
+      Audit every list-returning tool and query for missing caps, missing
+      truncated flags, or unbounded recursion; fix gaps.
+    done_when: "QA-802 passes."
+
+  - id: QA-802
+    title: "Tests: exhaustive cap conformance"
+    type: qa
+    milestone: M7
+    status: pending
+    implements: ["PRD §4 token-efficiency metric (supporting)"]
+    depends_on: [DEV-802, QA-000]
+    scope: >-
+      One parametrized suite enumerating all tools with oversized fixtures:
+      every response bounded, every truncation flagged.
+    done_when: "Tests pass."
+
+  - id: REV-802
+    title: "Review: Limit & truncation audit"
+    type: rev
+    milestone: M7
+    status: pending
+    implements: ["Review gate for FR-404/FR-603 across the full surface"]
+    depends_on: [DEV-802, QA-802]
+    done_when: "Review approved with no unresolved findings."
+
+  - id: DEV-803
+    title: "Dogfood: self-index"
+    type: dev
+    milestone: M7
+    status: pending
+    implements: ["PRD §4 dogfood metric"]
+    depends_on: [DEV-704, DEV-503]
+    verified_by: QA-803
+    reviewed_by: REV-803
+    scope: >-
+      Index this repository with its own tool; run every decision-matrix
+      question (search.md#decision-matrix) against the result; fix whatever
+      gives wrong answers.
+    done_when: "QA-803 passes."
+
+  - id: QA-803
+    title: "Tests: decision-matrix answers on self"
+    type: qa
+    milestone: M7
+    status: pending
+    implements: ["PRD §4 (the tool indexes its own repository and answers the decision-matrix questions correctly)"]
+    depends_on: [DEV-803, QA-000]
+    scope: >-
+      Automated test that indexes the repo itself and asserts each
+      decision-matrix row's named tool returns a correct, non-empty answer.
+    done_when: "Tests pass."
+
+  - id: REV-803
+    title: "Review: Dogfood: self-index"
+    type: rev
+    milestone: M7
+    status: pending
+    implements: ["Review gate for PRD §4 dogfood metric"]
+    depends_on: [DEV-803, QA-803]
+    done_when: "Review approved with no unresolved findings."
+
+  - id: DEV-804
+    title: "Worked-example token budget"
+    type: dev
+    milestone: M7
+    status: pending
+    implements: ["PRD §4 token-efficiency metric"]
+    spec: ["mcp-server.md#example-agent-session"]
+    depends_on: [DEV-803]
+    verified_by: QA-804
+    reviewed_by: REV-804
+    scope: >-
+      Instrument the worked rename session (find_symbol -> who_calls ->
+      get_chunk -> reindex) and measure total response tokens; trim response
+      shapes if materially over the ~400-token target.
+    done_when: "QA-804 passes."
+
+  - id: QA-804
+    title: "Tests: token-budget regression guard"
+    type: qa
+    milestone: M7
+    status: pending
+    implements: ["PRD §4 (the worked rename scenario completes in ~400 tokens of tool responses)"]
+    depends_on: [DEV-804, QA-000]
+    scope: >-
+      Automated test running the session against a fixture and asserting
+      total response size stays within the documented budget (threshold with
+      headroom, e.g. <=600 tokens, so it guards regressions without flaking).
+    done_when: "Tests pass."
+
+  - id: REV-804
+    title: "Review: Worked-example token budget"
+    type: rev
+    milestone: M7
+    status: pending
+    implements: ["Review gate for PRD §4 token-efficiency metric"]
+    spec: ["mcp-server.md#example-agent-session"]
+    depends_on: [DEV-804, QA-804]
+    done_when: "Review approved with no unresolved findings."
+
+  - id: DEV-805
+    title: "README & doc sync"
+    type: dev
+    milestone: M7
+    status: pending
+    implements: ["M7 deliverable (PRD §7)"]
+    depends_on: [DEV-803]
+    verified_by: QA-805
+    reviewed_by: REV-805
+    scope: >-
+      Update README quick-start (install, index, stats, serve, .mcp.json
+      registration) to match reality; reconcile any doc/spec drift discovered
+      during implementation (flag genuine design changes rather than silently
+      editing specs).
+    done_when: "QA-805 passes."
+
+  - id: QA-805
+    title: "Tests: quick-start commands run"
+    type: qa
+    milestone: M7
+    status: pending
+    implements: ["FR-700 acceptance (the three README quick-start commands work against a real repo)"]
+    depends_on: [DEV-805, QA-000]
+    scope: >-
+      Test that executes the README's documented commands verbatim against a
+      fixture repo and asserts they succeed.
+    done_when: "Tests pass."
+
+  - id: REV-805
+    title: "Review: README & doc sync"
+    type: rev
+    milestone: M7
+    status: pending
+    implements: ["Review gate for M7 deliverable (PRD §7)"]
+    depends_on: [DEV-805, QA-805]
+    done_when: "Review approved with no unresolved findings."
+
+  - id: GATE-M7
+    title: "Milestone gate: Hardening & dogfood"
+    type: gate
+    milestone: M7
+    status: pending
+    depends_on: [REV-801, REV-802, REV-803, REV-804, REV-805]
+    done_when: "All M7 REV nodes approved."
+
+  # ── M8 — Benchmark suite ──────────────────────────────────────────────────
+
+  - id: DEV-901
+    title: "Benchmark scaffolding: task registry & targets"
+    type: dev
+    milestone: M8
+    status: pending
+    implements: ["benchmark.md §Task model", "benchmark.md §Targets & fixtures", "benchmark.md §Directory layout"]
+    spec: ["benchmark.md#task-model", "benchmark.md#targets--fixtures", "benchmark.md#directory-layout"]
+    depends_on: [QA-000]
+    verified_by: QA-901
+    reviewed_by: REV-901
+    scope: >-
+      benchmarks/ directory layout per the spec; tasks.ts typed registry: the
+      BenchTask interface verbatim (id, category, style: "qa" | "edit",
+      target, prompt, grader, timeoutSec, tags), the six categories, load-time
+      validation (duplicate ids, unknown target/category references rejected).
+      targets.ts named targets for the three classes: QA-000 fixture builders
+      (git variant); pinned OSS repos cloned once into benchmarks/fixtures/ at
+      a fixed commit (path overridable via BENCH_FIXTURES); self at a tagged
+      commit.
+    done_when: "QA-901 passes."
+
+  - id: QA-901
+    title: "Tests: registry validation & target materialization"
+    type: qa
+    milestone: M8
+    status: pending
+    implements: ["benchmark.md §Task model acceptance (typed, validated at load)"]
+    depends_on: [DEV-901, QA-000]
+    scope: >-
+      Tests: the registry loads and validates; bad entries (duplicate id,
+      unknown target, unknown category, missing grader key) are rejected at
+      load; each target class materializes into a temp dir; BENCH_FIXTURES
+      override is honored.
+    done_when: "Tests pass."
+
+  - id: REV-901
+    title: "Review: Benchmark scaffolding"
+    type: rev
+    milestone: M8
+    status: pending
+    implements: ["Review gate for benchmark.md §Task model, §Targets & fixtures"]
+    spec: ["benchmark.md#task-model", "benchmark.md#targets--fixtures"]
+    depends_on: [DEV-901, QA-901]
+    done_when: "Review approved with no unresolved findings."
+
+  - id: DEV-902
+    title: "Deterministic graders & edit-tier checks"
+    type: dev
+    milestone: M8
+    status: pending
+    implements: ["benchmark.md §Two tiers, two grading families", "benchmark.md §Grading & judges (rungs 1-2)"]
+    spec: ["benchmark.md#two-tiers-two-grading-families", "benchmark.md#grading--judges"]
+    depends_on: [DEV-901]
+    verified_by: QA-902
+    reviewed_by: REV-902
+    scope: >-
+      Stdlib-only, no-network matchers: exact match, set match (F1 over
+      expected set), path:line-set match with +/- line-slop tolerance.
+      Edit-tier grader: run a task's designated test subset in the preserved
+      workspace; apply must-match / must-not-match diff assertions (e.g. a
+      rename must leave no old-name reference outside comments). Graders read
+      preserved workspaces and transcripts only — re-scoring never re-runs
+      agent sessions.
+    done_when: "QA-902 passes."
+
+  - id: QA-902
+    title: "Tests: matchers & diff assertions"
+    type: qa
+    milestone: M8
+    status: pending
+    implements: ["benchmark.md §Grading & judges acceptance (deterministic-first)"]
+    depends_on: [DEV-902, QA-000]
+    scope: >-
+      Unit tests per matcher (exact; F1 partial credit; line-slop boundary at
+      +/- the tolerance); diff assertions catch a planted must-not-match
+      leftover; the test-subset grader passes and fails correctly on seeded
+      workspaces; no network access in any grader path.
+    done_when: "Tests pass."
+
+  - id: REV-902
+    title: "Review: Deterministic graders & edit-tier checks"
+    type: rev
+    milestone: M8
+    status: pending
+    implements: ["Review gate for benchmark.md §Two tiers, §Grading & judges"]
+    spec: ["benchmark.md#two-tiers-two-grading-families", "benchmark.md#grading--judges"]
+    depends_on: [DEV-902, QA-902]
+    done_when: "Review approved with no unresolved findings."
+
+  - id: DEV-903
+    title: "Hand-authored seed task set"
+    type: dev
+    milestone: M8
+    status: pending
+    implements: ["benchmark.md §Task generation (source 1)", "benchmark.md §Example task"]
+    spec: ["benchmark.md#task-generation", "benchmark.md#example-task-annotated"]
+    depends_on: [DEV-901, DEV-902]
+    verified_by: QA-903
+    reviewed_by: REV-903
+    scope: >-
+      2-4 tasks per category per target class, answer keys derived manually;
+      every Q&A prompt ends with an explicit answer-format instruction so
+      grading stays mechanical; edit-tier tasks only on targets with runnable
+      test suites; entries tagged `authored` plus size class and language.
+    done_when: "QA-903 passes."
+
+  - id: QA-903
+    title: "Tests: seed set validity"
+    type: qa
+    milestone: M8
+    status: pending
+    implements: ["benchmark.md §Task generation acceptance (hand-authored seed set)"]
+    depends_on: [DEV-903, QA-000]
+    scope: >-
+      Tests over every seed entry: grader reference resolves; key shape
+      matches the grader kind; Q&A prompts end with a format instruction;
+      edit tasks reference test-runnable targets; required tags present;
+      category coverage (each category x target class has its 2-4 tasks).
+    done_when: "Tests pass."
+
+  - id: REV-903
+    title: "Review: Hand-authored seed task set"
+    type: rev
+    milestone: M8
+    status: pending
+    implements: ["Review gate for benchmark.md §Task generation (source 1)"]
+    spec: ["benchmark.md#task-generation"]
+    depends_on: [DEV-903, QA-903]
+    done_when: "Review approved with no unresolved findings."
+
+  - id: DEV-904
+    title: "Agent adapter: Claude Code"
+    type: dev
+    milestone: M8
+    status: pending
+    implements: ["benchmark.md §Agent adapters (Claude Code)"]
+    spec: ["benchmark.md#agent-adapters"]
+    depends_on: [DEV-901]
+    verified_by: QA-904
+    reviewed_by: REV-904
+    scope: >-
+      harness/adapters/claude.ts: headless invocation via `claude -p
+      "<prompt>" --output-format stream-json`; with-arm via `--mcp-config
+      <bench-mcp.json> --strict-mcp-config` allowing mcp__code-index__*;
+      without-arm with no MCP config, baseline tools only (tool-parity rule:
+      the with-arm is strictly additive); --model pin; edit-tier permission
+      mode workspace-scoped; extract tokens/cost/turns/tool-call metrics (MCP
+      vs. baseline) from the stream. Flags verified against current CLI docs
+      at implementation time; agent CLI version recorded per run.
+    done_when: "QA-904 passes."
+
+  - id: QA-904
+    title: "Tests: Claude adapter extraction & arm configs"
+    type: qa
+    milestone: M8
+    status: pending
+    implements: ["benchmark.md §Metrics acceptance (Claude Code sources)"]
+    depends_on: [DEV-904, QA-000]
+    scope: >-
+      Metric extraction tested against recorded/stub stream-json transcripts
+      (tokens in/out/cache, turns, tool-call counts split MCP vs. baseline);
+      arm configuration asserted on spawn arguments (with-arm gets the MCP
+      config, without-arm gets none); optional env-gated live smoke test
+      against the real CLI.
+    done_when: "Tests pass."
+
+  - id: REV-904
+    title: "Review: Agent adapter: Claude Code"
+    type: rev
+    milestone: M8
+    status: pending
+    implements: ["Review gate for benchmark.md §Agent adapters (Claude Code)"]
+    spec: ["benchmark.md#agent-adapters"]
+    depends_on: [DEV-904, QA-904]
+    done_when: "Review approved with no unresolved findings."
+
+  - id: DEV-905
+    title: "Agent adapter: Codex CLI"
+    type: dev
+    milestone: M8
+    status: pending
+    implements: ["benchmark.md §Agent adapters (Codex CLI)"]
+    spec: ["benchmark.md#agent-adapters"]
+    depends_on: [DEV-901]
+    verified_by: QA-905
+    reviewed_by: REV-905
+    scope: >-
+      harness/adapters/codex.ts: headless invocation via `codex exec
+      "<prompt>" --json` (JSONL event stream); with-arm mcp_servers.code-index
+      injected via -c config overrides or a dedicated profile; without-arm
+      profile with no MCP servers; -m model pin; sandbox mode permitting
+      workspace writes for the edit tier; token extraction from JSONL events,
+      cost computed from published pricing when not CLI-reported. Flags
+      verified against current CLI docs at implementation time; agent CLI
+      version recorded per run.
+    done_when: "QA-905 passes."
+
+  - id: QA-905
+    title: "Tests: Codex adapter extraction & arm configs"
+    type: qa
+    milestone: M8
+    status: pending
+    implements: ["benchmark.md §Metrics acceptance (Codex sources)"]
+    depends_on: [DEV-905, QA-000]
+    scope: >-
+      Same shape as QA-904 against recorded/stub JSONL streams:
+      token/turn/tool-call extraction, pricing-based cost fallback, arm
+      configuration asserted on spawn arguments; optional env-gated live
+      smoke test.
+    done_when: "Tests pass."
+
+  - id: REV-905
+    title: "Review: Agent adapter: Codex CLI"
+    type: rev
+    milestone: M8
+    status: pending
+    implements: ["Review gate for benchmark.md §Agent adapters (Codex CLI)"]
+    spec: ["benchmark.md#agent-adapters"]
+    depends_on: [DEV-905, QA-905]
+    done_when: "Review approved with no unresolved findings."
+
+  - id: DEV-906
+    title: "Harness orchestrator: bench run"
+    type: dev
+    milestone: M8
+    status: pending
+    implements: ["benchmark.md §Harness", "benchmark.md §Metrics", "benchmark.md §Results & reporting (record shape)"]
+    spec: ["benchmark.md#harness", "benchmark.md#metrics", "benchmark.md#results--reporting"]
+    depends_on: [DEV-902, DEV-903, DEV-904, DEV-905, DEV-704]
+    note: >-
+      DEV-704 is required only for end-to-end with-arm runs (the with-arm
+      builds the index via the real CLI); harness code itself can be written
+      against the fake adapter before DEV-704 lands.
+    verified_by: QA-906
+    reviewed_by: REV-906
+    scope: >-
+      harness/run.ts: `bench run --task <ids|category|all> --arms <arms>
+      --runs 4 --workers 4` (N configurable). Per (task, arm, run):
+      materialize a fresh workspace copy of the pinned target in a temp dir ->
+      with-arm only: build the index (code-index index .), build time recorded
+      separately and excluded from agent metrics -> invoke the agent adapter
+      with per-arm config and timeout -> capture transcript + CLI-reported
+      usage -> grade -> append one record (versions, metrics, score, grader,
+      flags, workspace path per the spec's record shape) to append-only
+      results/runs.jsonl -> preserve the workspace under
+      results/runs/<timestamp>/. Timeout and agent-error flags; isolation
+      invariant: no run ever sees another run's residue.
+    done_when: "QA-906 passes."
+
+  - id: QA-906
+    title: "Tests: run loop, isolation & record shape"
+    type: qa
+    milestone: M8
+    status: pending
+    implements: ["benchmark.md §Harness acceptance (per-run flow, isolation, preserved workspaces)"]
+    depends_on: [DEV-906, QA-000]
+    scope: >-
+      Tests with a scripted fake adapter: a run's JSONL record contains every
+      documented field; each run gets a fresh workspace, preserved afterward;
+      index_build_s recorded on with-arm runs and no index build occurs on
+      without-arm runs; a timed-out run produces a flagged record; records
+      append (never rewrite) across an interrupted-and-resumed suite.
+    done_when: "Tests pass."
+
+  - id: REV-906
+    title: "Review: Harness orchestrator"
+    type: rev
+    milestone: M8
+    status: pending
+    implements: ["Review gate for benchmark.md §Harness, §Metrics"]
+    spec: ["benchmark.md#harness", "benchmark.md#metrics"]
+    depends_on: [DEV-906, QA-906]
+    done_when: "Review approved with no unresolved findings."
+
+  - id: DEV-907
+    title: "LLM judge"
+    type: dev
+    milestone: M8
+    status: pending
+    implements: ["benchmark.md §Grading & judges (rung 3)"]
+    spec: ["benchmark.md#grading--judges"]
+    depends_on: [DEV-901, DEV-902]
+    verified_by: QA-907
+    reviewed_by: REV-907
+    scope: >-
+      benchmarks/judge/: a separate auditable script; fixed model, temperature
+      0, per-task rubric; input is the answer key and the agent's final answer
+      only — never the transcript; used solely for free-form
+      architecture-comprehension tasks (always the lowest grader rung that can
+      decide a task); --selftest fixtures (known-good and known-bad answers
+      that must score correctly); judge cost tracked separately from agent
+      cost.
+    done_when: "QA-907 passes."
+
+  - id: QA-907
+    title: "Tests: judge self-test & input isolation"
+    type: qa
+    milestone: M8
+    status: pending
+    implements: ["benchmark.md §Grading & judges acceptance (self-testing judges)"]
+    depends_on: [DEV-907, QA-000]
+    scope: >-
+      Tests: --selftest passes (known-good answers score high, known-bad
+      score low); the constructed judge input provably excludes transcript
+      content; tasks with deterministic graders never route to the judge.
+    done_when: "Tests pass."
+
+  - id: REV-907
+    title: "Review: LLM judge"
+    type: rev
+    milestone: M8
+    status: pending
+    implements: ["Review gate for benchmark.md §Grading & judges (rung 3)"]
+    spec: ["benchmark.md#grading--judges"]
+    depends_on: [DEV-907, QA-907]
+    done_when: "Review approved with no unresolved findings."
+
+  - id: DEV-908
+    title: "Index-driven task generator"
+    type: dev
+    milestone: M8
+    status: pending
+    implements: ["benchmark.md §Task generation (source 2 + circularity mitigations)"]
+    spec: ["benchmark.md#task-generation"]
+    depends_on: [DEV-901, DEV-701, DEV-304]
+    verified_by: QA-908
+    reviewed_by: REV-908
+    scope: >-
+      generate-tasks.ts: run `code-index index` on a target, then query
+      .code-index/index.db directly — symbols with 2+ resolved callers ->
+      who-calls tasks (key = caller list from edges); transitive closure over
+      calls edges -> impact tasks; imports edges -> architecture/
+      module-relationship tasks; exported symbols -> symbol-lookup tasks.
+      Generated entries tagged generated:<generator-version> with keys
+      inline, landing in the same registry structure as authored ones. Grep
+      cross-check spot-validation helper for caller-list keys (circularity
+      mitigation; generated tasks never certify index correctness).
+    done_when: "QA-908 passes."
+
+  - id: QA-908
+    title: "Tests: generated tasks & key cross-check"
+    type: qa
+    milestone: M8
+    status: pending
+    implements: ["benchmark.md §Task generation acceptance (generated entries, spot validation)"]
+    depends_on: [DEV-908, QA-000]
+    scope: >-
+      Tests on the QA-000 fixture: the generator emits tasks of each shape
+      whose keys match direct SQL against the index; the grep cross-check
+      agrees on a sample of caller-list keys; generated:<version> tags
+      present; generated entries pass DEV-901's registry validation.
+    done_when: "Tests pass."
+
+  - id: REV-908
+    title: "Review: Index-driven task generator"
+    type: rev
+    milestone: M8
+    status: pending
+    implements: ["Review gate for benchmark.md §Task generation (source 2)"]
+    spec: ["benchmark.md#task-generation"]
+    depends_on: [DEV-908, QA-908]
+    done_when: "Review approved with no unresolved findings."
+
+  - id: DEV-909
+    title: "Reporting: bench report"
+    type: dev
+    milestone: M8
+    status: pending
+    implements: ["benchmark.md §Results & reporting"]
+    spec: ["benchmark.md#results--reporting"]
+    depends_on: [DEV-906]
+    verified_by: QA-909
+    reviewed_by: REV-909
+    scope: >-
+      `bench report` reads results/runs.jsonl and emits dated markdown
+      (results/YYYY-MM-DD-<name>.md): per-category x per-arm median tables
+      (tokens, cost, wall-clock, tool calls, correctness); per-agent
+      with/without token ratio and correctness delta as the headline figures;
+      win/loss/tie counts per task pair; index build time shown alongside,
+      never netted out silently. Gitignore everything under results/ except
+      committed reports.
+    done_when: "QA-909 passes."
+
+  - id: QA-909
+    title: "Tests: report correctness"
+    type: qa
+    milestone: M8
+    status: pending
+    implements: ["benchmark.md §Results & reporting acceptance"]
+    depends_on: [DEV-909, QA-000]
+    scope: >-
+      Tests from a synthetic fixture runs.jsonl: report medians, with/without
+      ratios, and win/loss/tie counts match hand-computed values; index build
+      time appears in the report; gitignore rules keep runs.jsonl and
+      workspaces untracked while reports remain committable.
+    done_when: "Tests pass."
+
+  - id: REV-909
+    title: "Review: Reporting"
+    type: rev
+    milestone: M8
+    status: pending
+    implements: ["Review gate for benchmark.md §Results & reporting"]
+    spec: ["benchmark.md#results--reporting"]
+    depends_on: [DEV-909, QA-909]
+    done_when: "Review approved with no unresolved findings."
+
+  - id: GATE-M8
+    title: "Milestone gate: Benchmark suite"
+    type: gate
+    milestone: M8
+    status: pending
+    depends_on: [REV-901, REV-902, REV-903, REV-904, REV-905, REV-906, REV-907, REV-908, REV-909]
+    done_when: "All M8 REV nodes approved."
+
+  # ── Terminal node ─────────────────────────────────────────────────────────
+
+  - id: RELEASE
+    title: "All milestones complete"
+    type: gate
+    status: pending
+    depends_on: [GATE-M1, GATE-M2, GATE-M3, GATE-M4, GATE-M5, GATE-M6, GATE-M7, GATE-M8]
+    done_when: "Every milestone gate approved — the project is done."
