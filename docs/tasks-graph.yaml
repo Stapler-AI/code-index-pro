@@ -1664,7 +1664,7 @@ nodes:
     title: "End-to-end recovery drills"
     type: dev
     milestone: M7
-    status: pending
+    status: done
     implements: ["PRD §4 robustness metric"]
     spec: ["schema.md#health-check-and-recovery"]
     depends_on: [DEV-604]
@@ -1682,7 +1682,7 @@ nodes:
     title: "Tests: recovery drills in CI"
     type: qa
     milestone: M7
-    status: pending
+    status: done
     implements: ["PRD §4 (a corrupted or foreign database never crashes the server)"]
     depends_on: [DEV-801, QA-000]
     scope: >-
@@ -1694,7 +1694,7 @@ nodes:
     title: "Review: End-to-end recovery drills"
     type: rev
     milestone: M7
-    status: pending
+    status: approved
     implements: ["Review gate for PRD §4 robustness metric"]
     spec: ["schema.md#health-check-and-recovery"]
     depends_on: [DEV-801, QA-801]
@@ -1704,7 +1704,7 @@ nodes:
     title: "Limit & truncation audit"
     type: dev
     milestone: M7
-    status: pending
+    status: in_progress
     implements: ["FR-404/FR-603 across the full surface"]
     depends_on: [DEV-604]
     verified_by: QA-802
