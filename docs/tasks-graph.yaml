@@ -1981,7 +1981,7 @@ nodes:
     title: "Review: Hand-authored seed task set"
     type: rev
     milestone: M8
-    status: pending
+    status: approved
     implements: ["Review gate for benchmark.md §Task generation (source 1)"]
     spec: ["benchmark.md#task-generation"]
     depends_on: [DEV-903, QA-903]
@@ -2072,7 +2072,7 @@ nodes:
     title: "Review: Agent adapter: Codex CLI"
     type: rev
     milestone: M8
-    status: pending
+    status: approved
     implements: ["Review gate for benchmark.md §Agent adapters (Codex CLI)"]
     spec: ["benchmark.md#agent-adapters"]
     depends_on: [DEV-905, QA-905]
@@ -2082,7 +2082,7 @@ nodes:
     title: "Harness orchestrator: bench run"
     type: dev
     milestone: M8
-    status: pending
+    status: done
     implements: ["benchmark.md §Harness", "benchmark.md §Metrics", "benchmark.md §Results & reporting (record shape)"]
     spec: ["benchmark.md#harness", "benchmark.md#metrics", "benchmark.md#results--reporting"]
     depends_on: [DEV-902, DEV-903, DEV-904, DEV-905, DEV-704]
@@ -2110,7 +2110,7 @@ nodes:
     title: "Tests: run loop, isolation & record shape"
     type: qa
     milestone: M8
-    status: pending
+    status: done
     implements: ["benchmark.md §Harness acceptance (per-run flow, isolation, preserved workspaces)"]
     depends_on: [DEV-906, QA-000]
     scope: >-
