@@ -285,7 +285,7 @@ export const SEED_TASKS: BenchTask[] = [
     style: "edit",
     target: "oss-zod",
     prompt:
-      "Rename the exported const `quotelessJson` to `formatQuotelessJson` throughout src/, updating every reference. Keep behavior identical.",
+      "Rename the exported const `quotelessJson` to `formatQuotelessJson` throughout the repository, including the deno/lib mirror, updating every reference. Keep behavior identical.",
     grader: {
       kind: "test-diff",
       testCommand: ["npx", "jest", "--config", "./configs/ts-jest.config.json", "src/__tests__/error.test.ts"],
@@ -301,7 +301,7 @@ export const SEED_TASKS: BenchTask[] = [
     style: "edit",
     target: "oss-zod",
     prompt:
-      "Rename the exported const `getParsedType` to `parsedTypeOf` throughout src/, updating every reference. Keep behavior identical.",
+      "Rename the exported const `getParsedType` to `parsedTypeOf` throughout the repository, including the deno/lib mirror, updating every reference. Keep behavior identical.",
     grader: {
       kind: "test-diff",
       testCommand: ["npx", "jest", "--config", "./configs/ts-jest.config.json", "src/__tests__/string.test.ts"],
@@ -435,10 +435,12 @@ export const SEED_TASKS: BenchTask[] = [
     style: "edit",
     target: "self",
     prompt:
-      "Rename the exported function `pruneUnseenFiles` to `removeUnseenFiles` throughout src/, updating every reference. Keep behavior identical.",
+      "Rename the exported function `pruneUnseenFiles` to `removeUnseenFiles` throughout the repository, including its test references, updating every use. Keep behavior identical.",
     grader: {
       kind: "test-diff",
-      testCommand: ["npx", "vitest", "run", "test/run.test.ts"],
+      // test/prune.test.ts imports pruneUnseenFiles directly, so it both
+      // exercises the rename and must itself be updated to pass.
+      testCommand: ["npx", "vitest", "run", "test/prune.test.ts"],
       mustMatch: ["\\bremoveUnseenFiles\\b"],
       mustNotMatch: ["\\bpruneUnseenFiles\\b"],
     },

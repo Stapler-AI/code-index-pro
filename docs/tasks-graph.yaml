@@ -2027,7 +2027,7 @@ nodes:
     title: "Review: Agent adapter: Claude Code"
     type: rev
     milestone: M8
-    status: pending
+    status: approved
     implements: ["Review gate for benchmark.md §Agent adapters (Claude Code)"]
     spec: ["benchmark.md#agent-adapters"]
     depends_on: [DEV-904, QA-904]
@@ -2037,7 +2037,7 @@ nodes:
     title: "Agent adapter: Codex CLI"
     type: dev
     milestone: M8
-    status: pending
+    status: done
     implements: ["benchmark.md §Agent adapters (Codex CLI)"]
     spec: ["benchmark.md#agent-adapters"]
     depends_on: [DEV-901]
@@ -2058,7 +2058,7 @@ nodes:
     title: "Tests: Codex adapter extraction & arm configs"
     type: qa
     milestone: M8
-    status: pending
+    status: done
     implements: ["benchmark.md §Metrics acceptance (Codex sources)"]
     depends_on: [DEV-905, QA-000]
     scope: >-
