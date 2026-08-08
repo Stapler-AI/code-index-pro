@@ -733,7 +733,7 @@ nodes:
     title: "CLI: index"
     type: dev
     milestone: M2
-    status: pending
+    status: done
     implements: [FR-701]
     spec: ["indexing.md#cli-entry-points-planned"]
     depends_on: [DEV-206]
@@ -749,7 +749,7 @@ nodes:
     title: "Tests: index command"
     type: qa
     milestone: M2
-    status: pending
+    status: done
     implements: ["FR-701 / FR-700 acceptance"]
     depends_on: [DEV-701, QA-000]
     scope: >-
@@ -762,7 +762,7 @@ nodes:
     title: "Review: CLI: index"
     type: rev
     milestone: M2
-    status: pending
+    status: approved
     implements: ["Review gate for FR-701"]
     spec: ["indexing.md#cli-entry-points-planned"]
     depends_on: [DEV-701, QA-701]
