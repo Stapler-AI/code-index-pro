@@ -1,7 +1,9 @@
 #!/usr/bin/env node
 
-import { resolve } from "node:path";
+import { existsSync, rmSync } from "node:fs";
+import { join, resolve } from "node:path";
 import { runPipeline } from "./pipeline/run";
+import { CODE_INDEX_DIR } from "./storage/database";
 import { clearReindexRequired, isReindexRequired, openHealthy } from "./storage/health";
 
 const USAGE = `code-index — code indexing tools for AI agents
@@ -12,7 +14,7 @@ Commands:
   index [path]   Index a repository incrementally (path defaults to cwd)
                  --full  clear all indexed rows first, then re-index
   stats          Show index statistics for the current directory's repo
-  clear          Delete the index (not yet implemented)
+  clear          Delete the current directory's index (.code-index/)
   serve [path]   Start the MCP server (not yet implemented)
 `;
 
@@ -87,6 +89,18 @@ function commandStats(): number {
   }
 }
 
+/** `code-index clear` (FR-703): removes the whole .code-index/ directory. */
+function commandClear(): number {
+  const codeIndexDir = join(process.cwd(), CODE_INDEX_DIR);
+  if (!existsSync(codeIndexDir)) {
+    process.stdout.write("No index to clear.\n");
+    return 0;
+  }
+  rmSync(codeIndexDir, { recursive: true, force: true });
+  process.stdout.write(`Removed ${codeIndexDir}\n`);
+  return 0;
+}
+
 export function main(argv: string[]): number {
   const [command, ...rest] = argv;
   if (command === undefined || command === "--help" || command === "-h") {
@@ -98,6 +112,8 @@ export function main(argv: string[]): number {
       return commandIndex(rest);
     case "stats":
       return commandStats();
+    case "clear":
+      return commandClear();
     default:
       process.stderr.write(`code-index: unknown or not-yet-implemented command: ${command}\n\n`);
       process.stderr.write(USAGE);

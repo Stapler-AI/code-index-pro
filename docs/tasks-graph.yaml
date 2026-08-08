@@ -808,7 +808,7 @@ nodes:
     title: "CLI: clear"
     type: dev
     milestone: M2
-    status: pending
+    status: done
     implements: [FR-703]
     depends_on: [DEV-108]
     verified_by: QA-703
@@ -822,7 +822,7 @@ nodes:
     title: "Tests: clear command"
     type: qa
     milestone: M2
-    status: pending
+    status: done
     implements: ["FR-703 acceptance"]
     depends_on: [DEV-703, QA-000]
     scope: >-
@@ -834,7 +834,7 @@ nodes:
     title: "Review: CLI: clear"
     type: rev
     milestone: M2
-    status: pending
+    status: approved
     implements: ["Review gate for FR-703"]
     depends_on: [DEV-703, QA-703]
     done_when: "Review approved with no unresolved findings."
