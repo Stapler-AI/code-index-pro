@@ -32,10 +32,6 @@ describe("README quick start runs verbatim (FR-700)", () => {
   let client: Client | null = null;
 
   beforeAll(() => {
-    if (!existsSync(BIN_PATH)) {
-      console.error("dist missing — running a fallback build for quickstart tests");
-      execFileSync("npm", ["run", "build"], { cwd: PACKAGE_ROOT, stdio: ["ignore", "ignore", "inherit"] });
-    }
     chmodSync(BIN_PATH, 0o755); // npm sets the bin executable on install; tsc does not
     repo = buildFixtureRepo({ git: true });
     const binDir = join(repo.root, "node_modules", ".bin");

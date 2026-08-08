@@ -1,7 +1,10 @@
+import { execFileSync } from "node:child_process";
+import { existsSync } from "node:fs";
+import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { CATEGORIES, Category, validateTasks } from "../benchmarks/tasks";
 import { SEED_TASKS } from "../benchmarks/seed-tasks";
-import { TARGETS } from "../benchmarks/targets";
+import { fixturesDir, SELF_TAG, TARGETS } from "../benchmarks/targets";
 
 /**
  * QA-903: validity of the hand-authored seed set. Structural — never runs
@@ -92,5 +95,121 @@ describe("hand-authored seed task set (DEV-903 / QA-903)", () => {
     expect(new Set(SEED_TASKS.map((t) => t.id)).size).toBe(SEED_TASKS.length);
     const used = new Set<Category>(SEED_TASKS.map((t) => t.category));
     for (const category of CATEGORIES) expect(used.has(category), category).toBe(true);
+  });
+});
+
+/**
+ * SK-Q11 (FR-801): the SK-D11 structure-heavy expansion. Proves the deepened
+ * multi-hop coverage on the two realistic targets — each structure-heavy
+ * category (callers-impact, cross-file-navigation, rename-refactor) carries
+ * ≥ 2 authored tasks on both oss-zod and self — and mechanically spot-checks a
+ * sample of the new grader keys against the pinned target checkouts where the
+ * cache/tag is available (skip-guarded otherwise, like the target suite).
+ */
+describe("structure-heavy seed expansion (SK-D11 / SK-Q11, FR-801)", () => {
+  const STRUCTURE_HEAVY = ["callers-impact", "cross-file-navigation", "rename-refactor"] as const;
+  const REALISTIC_TARGETS = ["oss-zod", "self"] as const;
+
+  it("each structure-heavy category × {oss-zod, self} has ≥ 2 authored tasks", () => {
+    for (const category of STRUCTURE_HEAVY) {
+      for (const target of REALISTIC_TARGETS) {
+        const authored = SEED_TASKS.filter(
+          (t) => t.category === category && t.target === target && t.tags.includes("authored"),
+        );
+        expect(authored.length, `${category} × ${target}`).toBeGreaterThanOrEqual(2);
+      }
+    }
+  });
+
+  // The new ids ship with these targets; pin their exact presence so a rename or
+  // accidental drop is caught, and use them as the spot-check sample below.
+  const NEW_IDS = [
+    "ci-zod-zodparsedtype-importers-001",
+    "ci-self-openhealthy-callers-001",
+    "cf-zod-geterrormap-default-001",
+    "cf-self-hooks-resolveedges-001",
+    "cf-self-cli-to-evaluatefile-001",
+    "rr-zod-geterrormap-001",
+    "rr-self-discoverfiles-001",
+  ] as const;
+
+  it("every SK-D11 id is present, well-formed, authored, and validates", () => {
+    // Registry validation (incl. SK-D10's tool-agnostic prompt rule) over just
+    // the new tasks — a targeted failing-before / passing-after signal for D11.
+    const newTasks = NEW_IDS.map((id) => {
+      const t = SEED_TASKS.find((task) => task.id === id);
+      expect(t, `${id} present`).toBeDefined();
+      return t!;
+    });
+    expect(() => validateTasks(newTasks)).not.toThrow();
+    // Id convention: <category-prefix>-<target>-<slug>-NNN, lower-kebab + 3 digits.
+    for (const t of newTasks) {
+      expect(t.id, t.id).toMatch(/^[a-z]{2}-(zod|self)-[a-z0-9-]+-\d{3}$/);
+      expect(t.tags, t.id).toContain("authored");
+      expect(STRUCTURE_HEAVY.includes(t.category as (typeof STRUCTURE_HEAVY)[number]), t.id).toBe(true);
+    }
+  });
+
+  it("the two SK-D11 rename tasks use test-diff graders with non-empty mustMatch/mustNotMatch", () => {
+    for (const id of ["rr-zod-geterrormap-001", "rr-self-discoverfiles-001"]) {
+      const t = SEED_TASKS.find((task) => task.id === id)!;
+      expect(t.style, id).toBe("edit");
+      expect(t.grader.kind, id).toBe("test-diff");
+      if (t.grader.kind !== "test-diff") throw new Error(`${id}: expected test-diff grader`);
+      expect(t.grader.mustMatch.length, `${id} mustMatch`).toBeGreaterThan(0);
+      expect(t.grader.mustNotMatch.length, `${id} mustNotMatch`).toBeGreaterThan(0);
+    }
+  });
+
+  // ── Mechanical key spot-checks against the pinned targets (skip-guarded) ────
+  // Keys are ground truth; verify the path half of a sample of new path-line-set
+  // keys resolves in the pinned checkout. Guarded on target availability so a
+  // missing zod cache / self tag skips rather than fails (target-suite pattern).
+
+  const zodCache = join(fixturesDir(), "zod");
+  const zodAvailable = existsSync(join(zodCache, "package.json"));
+
+  it.runIf(zodAvailable)(
+    "oss-zod new keys point at files that exist in the pinned checkout",
+    () => {
+      // ci-zod-zodparsedtype-importers: every importer path resolves.
+      const ci = SEED_TASKS.find((t) => t.id === "ci-zod-zodparsedtype-importers-001")!;
+      if (ci.grader.kind !== "set") throw new Error("expected set grader");
+      for (const rel of ci.grader.key) {
+        expect(existsSync(join(zodCache, rel)), rel).toBe(true);
+      }
+      // cf-zod-geterrormap-default: the path half of the path:line key resolves.
+      const cf = SEED_TASKS.find((t) => t.id === "cf-zod-geterrormap-default-001")!;
+      if (cf.grader.kind !== "path-line-set") throw new Error("expected path-line-set grader");
+      for (const entry of cf.grader.key) {
+        const [rel] = entry.split(":");
+        expect(existsSync(join(zodCache, rel)), entry).toBe(true);
+      }
+    },
+  );
+
+  const selfTagPresent = (() => {
+    try {
+      execFileSync("git", ["rev-parse", "--verify", "-q", `refs/tags/${SELF_TAG}`], { stdio: "pipe" });
+      return true;
+    } catch {
+      return false;
+    }
+  })();
+
+  it.runIf(selfTagPresent)("self new path:line keys point at files present at the pinned tag", () => {
+    const selfPathTasks = ["ci-self-openhealthy-callers-001", "cf-self-hooks-resolveedges-001", "cf-self-cli-to-evaluatefile-001"];
+    for (const id of selfPathTasks) {
+      const t = SEED_TASKS.find((task) => task.id === id)!;
+      if (t.grader.kind !== "path-line-set") throw new Error(`${id}: expected path-line-set grader`);
+      for (const entry of t.grader.key) {
+        const [rel] = entry.split(":");
+        // `git cat-file -e <tag>:<path>` exits non-zero if the blob is absent.
+        expect(() =>
+          execFileSync("git", ["cat-file", "-e", `${SELF_TAG}:${rel}`], { stdio: "pipe" }),
+          `${id} ${entry}`,
+        ).not.toThrow();
+      }
+    }
   });
 });

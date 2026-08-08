@@ -1,4 +1,4 @@
-# code-index-dev
+# stapler-code-index
 
 Development tools that give AI coding agents architectural understanding of a codebase — at a fraction of the token cost of text search and full-file reads.
 
@@ -45,13 +45,15 @@ Languages: JavaScript, TypeScript, TSX (`.js .mjs .cjs .jsx .ts .mts .cts .tsx`)
   "mcpServers": {
     "code-index": {
       "command": "npx",
-      "args": ["code-index", "serve", "."]
-    }
-  }
+      "args": ["code-index", "serve", "."],
+    },
+  },
 }
 ```
 
 or `claude mcp add code-index -- npx code-index serve .`
+
+Skill and config templates for Claude Code and Codex, plus the integration architecture and distribution roadmap, are in [docs/agent-skills.md](docs/agent-skills.md) and [`integrations/`](integrations/).
 
 ## Robustness model
 
@@ -59,18 +61,19 @@ The index is a pure cache: it is never repaired, only rebuilt. A corrupted, fore
 
 ## Documentation
 
-| Doc | Covers |
-|---|---|
-| [docs/architecture.md](docs/architecture.md) | System overview, components, data flow, decision log, non-goals |
-| [docs/schema.md](docs/schema.md) | SQLite schema: `indexed_files`, `code_chunks`, `symbols`, `edges`, FTS5, migrations, recovery |
-| [docs/indexing.md](docs/indexing.md) | Pipeline: discovery → change detection → chunking → symbol/edge extraction → resolution |
-| [docs/ast-graph.md](docs/ast-graph.md) | The code graph: node/edge model, construction, query use-cases with SQL |
-| [docs/search.md](docs/search.md) | Three retrieval modes and when to use each (index vs. FTS vs. ast-grep) |
-| [docs/mcp-server.md](docs/mcp-server.md) | Agent-facing MCP tool catalog and token-efficiency rationale |
-| [docs/prd.md](docs/prd.md) | Product requirements: numbered FRs, milestones, acceptance criteria — source for tasks and the dev plan |
-| [docs/benchmark.md](docs/benchmark.md) | Benchmark suite: Claude Code & Codex, with vs. without the tools — arms, tasks, harness, metrics |
+| Doc                                          | Covers                                                                                                  |
+| -------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
+| [docs/architecture.md](docs/architecture.md) | System overview, components, data flow, decision log, non-goals                                         |
+| [docs/schema.md](docs/schema.md)             | SQLite schema: `indexed_files`, `code_chunks`, `symbols`, `edges`, FTS5, migrations, recovery           |
+| [docs/indexing.md](docs/indexing.md)         | Pipeline: discovery → change detection → chunking → symbol/edge extraction → resolution                 |
+| [docs/ast-graph.md](docs/ast-graph.md)       | The code graph: node/edge model, construction, query use-cases with SQL                                 |
+| [docs/search.md](docs/search.md)             | Three retrieval modes and when to use each (index vs. FTS vs. ast-grep)                                 |
+| [docs/mcp-server.md](docs/mcp-server.md)     | Agent-facing MCP tool catalog and token-efficiency rationale                                            |
+| [docs/agent-skills.md](docs/agent-skills.md) | Claude Code & Codex integration architecture: skills, MCP registration, packaging roadmap               |
+| [docs/prd.md](docs/prd.md)                   | Product requirements: numbered FRs, milestones, acceptance criteria — source for tasks and the dev plan |
+| [docs/benchmark.md](docs/benchmark.md)       | Benchmark suite: Claude Code & Codex, with vs. without the tools — arms, tasks, harness, metrics        |
 
-Suggested reading order: architecture → schema → indexing → ast-graph → search → mcp-server → prd.
+Suggested reading order: architecture → schema → indexing → ast-graph → search → mcp-server → agent-skills → prd.
 
 ## Implementation notes (doc/spec reconciliations)
 

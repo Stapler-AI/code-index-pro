@@ -1,5 +1,5 @@
 {
-  "name": "code-index-dev",
+  "name": "stapler-code-index",
   "version": "1.0.0",
   "description": "Code indexing tools for AI agents",
   "bin": {
@@ -7,13 +7,19 @@
   },
   "files": [
     "dist",
-    "queries"
+    "queries",
+    "integrations"
   ],
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "prepare": "tsc -p tsconfig.json",
+    "pretest": "npm run build && npm run boundaries",
+    "boundaries": "depcruise src benchmarks --config .dependency-cruiser.cjs",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "bench": "tsx benchmarks/harness/run.ts",
+    "bench:generate": "tsx benchmarks/generate-tasks.ts",
+    "bench:judge:selftest": "tsx benchmarks/judge/judge.ts --selftest"
   },
   "author": "Obediah Klopfenstein",
   "license": "MIT",
@@ -30,6 +36,8 @@
   "devDependencies": {
     "@types/better-sqlite3": "9.6.0",
     "@types/node": "20.19.43",
+    "dependency-cruiser": "^17.4.3",
+    "tsx": "^4.23.11",
     "typescript": "5.9.3",
     "vitest": "4.1.10"
   }

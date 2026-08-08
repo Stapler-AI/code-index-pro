@@ -63,7 +63,7 @@ Task: *"rename `replaceChunks` to `replaceFileChunks` safely."*
 
 ## Registration
 
-Planned usage once implemented:
+In the target repo:
 
 ```jsonc
 // .mcp.json in the target repo
@@ -78,3 +78,5 @@ Planned usage once implemented:
 ```
 
 or `claude mcp add code-index -- npx code-index serve .`
+
+Skill templates and full integration guidance (Claude Code, Codex, sandbox caveats, distribution roadmap): [agent-skills.md](agent-skills.md).

@@ -1,9 +1,7 @@
-import { execFileSync } from "node:child_process";
-import { existsSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js";
-import { afterEach, beforeAll, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it } from "vitest";
 import { graphHooks } from "../src/graph/hooks";
 import { runPipeline } from "../src/pipeline/run";
 import { openDatabase } from "../src/storage/database";
@@ -52,12 +50,6 @@ describe("MCP server startup (FR-601)", () => {
   let repo: FixtureRepo;
   let client: Client | null = null;
 
-  beforeAll(() => {
-    if (!existsSync(START_PATH)) {
-      console.error("dist missing — running a fallback build for server tests");
-      execFileSync("npm", ["run", "build"], { cwd: PACKAGE_ROOT, stdio: ["ignore", "ignore", "inherit"] });
-    }
-  });
   afterEach(async () => {
     await client?.close();
     client = null;

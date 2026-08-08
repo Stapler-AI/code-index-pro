@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "code-index": {
+      "command": "npx",
+      "args": ["code-index", "serve", "."]
+    }
+  }
+}

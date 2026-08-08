@@ -1,5 +1,3 @@
-import { execFileSync } from "node:child_process";
-import { existsSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js";
@@ -48,10 +46,6 @@ describe("MCP tool catalog (FR-602)", () => {
   }
 
   beforeAll(async () => {
-    if (!existsSync(START_PATH)) {
-      console.error("dist missing — running a fallback build for server tests");
-      execFileSync("npm", ["run", "build"], { cwd: PACKAGE_ROOT, stdio: ["ignore", "ignore", "inherit"] });
-    }
     repo = buildFixtureRepo({ git: false });
     // Mirrors the worked rename session (mcp-server.md#example-agent-session).
     repo.write(

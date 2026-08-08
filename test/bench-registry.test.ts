@@ -60,6 +60,61 @@ describe("benchmark registry (DEV-901 / QA-901)", () => {
   });
 });
 
+describe("tool-agnostic prompt validation (SK-D10 / SK-Q10, FR-803)", () => {
+  const withPrompt = (prompt: string): BenchTask => ({ ...VALID_TASK, prompt });
+
+  // Rejection: one case per forbidden class. Each must throw TaskValidationError,
+  // and (where practical) the message must name the offending substring.
+  const rejections: { name: string; prompt: string; match: RegExp }[] = [
+    // The 11 MCP tool names (spot the classes + boundaries).
+    { name: "find_symbol tool name", prompt: "Use find_symbol to locate greet.", match: /find_symbol/ },
+    { name: "who_calls tool name", prompt: "Run who_calls on greet.", match: /who_calls/ },
+    { name: "impact_of_change tool name", prompt: "Check impact_of_change for greet.", match: /impact_of_change/ },
+    { name: "search_structural tool name", prompt: "Try search_structural for the pattern.", match: /search_structural/ },
+    { name: "reindex tool name", prompt: "First reindex, then answer.", match: /reindex/ },
+    { name: "index_status tool name", prompt: "Call index_status before answering.", match: /index_status/ },
+    // Literal "MCP".
+    { name: "MCP mention", prompt: "Use MCP to find every caller of greet.", match: /MCP/ },
+    // code-index / code index.
+    { name: "code-index (hyphen)", prompt: "Ask the code-index for callers of greet.", match: /code-index/ },
+    { name: "code index (space)", prompt: "Ask the code index for callers of greet.", match: /code index/ },
+    // "index"-as-mechanism phrasing.
+    { name: "query the index", prompt: "Query the index for every caller of greet.", match: /the index/ },
+    { name: "the index (standalone)", prompt: "Consult the index and list callers of greet.", match: /the index/ },
+    { name: "indexed phrasing", prompt: "List callers of greet from the indexed symbols.", match: /indexed/ },
+  ];
+
+  for (const { name, prompt, match } of rejections) {
+    it(`rejects a prompt naming a retrieval mechanism: ${name}`, () => {
+      expect(() => validateTasks([withPrompt(prompt)])).toThrow(TaskValidationError);
+      // Message names the offending substring.
+      expect(() => validateTasks([withPrompt(prompt)])).toThrow(match);
+    });
+  }
+
+  // Acceptance: near-misses that must NOT throw. The rule targets mechanism phrases
+  // and tool names, never the bare "index" substring or unrelated vocabulary.
+  const acceptances: { name: string; prompt: string }[] = [
+    {
+      name: "src/index.ts path",
+      prompt: "In `src/index.ts`, which function calls `greet`? Answer as path:line.",
+    },
+    { name: "indexOf identifier", prompt: "Which functions call `indexOf` in this repo? Answer as path:line." },
+    { name: "indentation vocabulary", prompt: "List functions affected by the indentation change, as path:line." },
+    { name: "indexing domain word", prompt: "Which module drives the indexing pipeline? Answer as path:line." },
+  ];
+
+  for (const { name, prompt } of acceptances) {
+    it(`accepts a near-miss that is not a mechanism mention: ${name}`, () => {
+      expect(() => validateTasks([withPrompt(prompt)])).not.toThrow();
+    });
+  }
+
+  it("the full shipped registry validates clean (no forbidden prompt mentions)", () => {
+    expect(() => validateTasks(TASKS)).not.toThrow();
+  });
+});
+
 describe("benchmark targets (DEV-901 / QA-901)", () => {
   const cleanups: (() => void)[] = [];
   afterEach(() => {

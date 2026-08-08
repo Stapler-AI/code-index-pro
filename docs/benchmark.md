@@ -118,6 +118,8 @@ Two sources feed the registry:
 
 Node/TS orchestrator (project stack; ponytail's structure, not its Python), with one **adapter per agent** isolating CLI invocation and metric extraction.
 
+> **Running it:** see [`benchmarks/README.md`](../benchmarks/README.md) for setup and the actual invocation (`npm run bench -- run …`). The `bench run …` form below is the conceptual command.
+
 ```
 bench run --task <ids|category|all> --arms <arms> --runs 4 --workers 4
 ```
@@ -162,7 +164,7 @@ flowchart LR
 | With-arm tools | `mcp_servers.code-index` injected via `-c` config overrides (or a dedicated profile) |
 | Without-arm tools | profile with no MCP servers |
 | Model pin | `-m <id>` |
-| Edit tier | sandbox mode permitting workspace writes |
+| Edit tier | sandbox mode permitting workspace writes — currently `danger-full-access` on both tiers, since the managed profiles auto-cancel MCP tool calls in exec mode (openai/codex#16685) |
 
 ## Metrics
 

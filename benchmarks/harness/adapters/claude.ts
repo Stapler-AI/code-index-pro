@@ -1,6 +1,7 @@
 import {
   AgentInvocation,
   emptyMetrics,
+  hasSkill,
   InvocationOptions,
   isMcpToolName,
   isWithArm,
@@ -50,11 +51,22 @@ export function buildClaudeInvocation(opts: InvocationOptions): AgentInvocation 
       throw new Error("claude with-arm requires mcpConfigPath");
     }
     args.push("--mcp-config", opts.mcpConfigPath, "--strict-mcp-config");
-    // Strictly additive: baseline tools PLUS the code-index MCP tools.
-    args.push("--allowedTools", [...CLAUDE_BASELINE_TOOLS, `mcp__${MCP_SERVER_NAME}__*`].join(","));
+    // Strictly additive: baseline tools PLUS the code-index MCP tools. The
+    // skill arm (FR-403 parity ladder) adds ONLY the `Skill` tool on top of
+    // the with-arm allowlist — nothing else changes vs claude-with.
+    const allowed = [...CLAUDE_BASELINE_TOOLS, `mcp__${MCP_SERVER_NAME}__*`];
+    if (hasSkill(opts.arm)) allowed.push("Skill");
+    args.push("--allowedTools", allowed.join(","));
   } else {
     // Parity floor: identical baseline tools, no MCP config at all.
     args.push("--allowedTools", CLAUDE_BASELINE_TOOLS.join(","));
+  }
+
+  // Diagnostic mode (FR-404): when the composition root supplies the SKILL.md
+  // body for a skill arm, inject it via --append-system-prompt instead of the
+  // file copy. Never for non-skill arms.
+  if (hasSkill(opts.arm) && typeof opts.systemPromptSkill === "string") {
+    args.push("--append-system-prompt", opts.systemPromptSkill);
   }
 
   if (opts.editTier) {
@@ -120,7 +132,9 @@ export function parseClaudeStream(stdout: string): ParsedTranscript {
       const u = event.usage ?? {};
       metrics.tokensIn = u.input_tokens ?? 0;
       metrics.tokensOut = u.output_tokens ?? 0;
-      metrics.tokensCache = (u.cache_creation_input_tokens ?? 0) + (u.cache_read_input_tokens ?? 0);
+      metrics.tokensCacheRead = u.cache_read_input_tokens ?? 0;
+      metrics.tokensCacheCreation = u.cache_creation_input_tokens ?? 0;
+      metrics.tokensCache = metrics.tokensCacheRead + metrics.tokensCacheCreation;
       metrics.costUsd = typeof event.total_cost_usd === "number" ? event.total_cost_usd : null;
       metrics.turns = event.num_turns ?? 0;
       metrics.wallSeconds = typeof event.duration_ms === "number" ? event.duration_ms / 1000 : null;

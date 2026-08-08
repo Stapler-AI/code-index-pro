@@ -1,0 +1,17 @@
+# Merge into ~/.codex/config.toml.
+#
+# `command` must be a bare executable with the arguments in `args` —
+# putting the whole command line in `command` does not error, the server
+# is just silently never attached.
+[mcp_servers.code-index]
+command = "npx"
+args = ["code-index", "serve", "."]
+
+# Headless one-off (no config.toml edit):
+#   codex exec "<prompt>" --json \
+#     -c mcp_servers.code-index.command=npx \
+#     -c 'mcp_servers.code-index.args=["code-index","serve","."]'
+#
+# Sandbox caveat: managed sandbox profiles auto-cancel MCP tool calls in
+# exec mode (openai/codex#16685); until fixed upstream, headless MCP use
+# requires --sandbox danger-full-access. Interactive sessions are unaffected.

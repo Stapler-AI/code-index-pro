@@ -312,6 +312,71 @@ export const SEED_TASKS: BenchTask[] = [
     tags: ["authored", "medium", "ts"],
   },
 
+  // ── oss-zod: SK-D11 deeper multi-hop additions ────────────────────────────
+  {
+    // callers-impact (symbol-importer set, deeper than the module-import tasks
+    // above): who imports the `ZodParsedType` value/type, which is DEFINED in
+    // src/helpers/util.ts (`export const ZodParsedType` :141 / `export type` :164).
+    // Verified against the pinned zod checkout: the src files (excluding
+    // __tests__ and the defining util.ts) that `import ... ZodParsedType ...`
+    // are exactly parseUtil.ts, locales/en.ts, types.ts, ZodError.ts —
+    //   grep -rln "ZodParsedType" src | grep -v __tests__  → those 4 + util.ts.
+    id: "ci-zod-zodparsedtype-importers-001",
+    category: "callers-impact",
+    style: "qa",
+    target: "oss-zod",
+    prompt:
+      "The `ZodParsedType` value is defined in one helper module. Which other source files under src/ (excluding the __tests__ directory and the file that defines it) import `ZodParsedType`? List them as repo-relative paths, one per line. Answer only with the list.",
+    grader: {
+      kind: "set",
+      key: ["src/helpers/parseUtil.ts", "src/locales/en.ts", "src/types.ts", "src/ZodError.ts"],
+    },
+    timeoutSec: T,
+    tags: ["authored", "medium", "ts"],
+  },
+  {
+    // cross-file-navigation (multi-hop, cross-module): `getErrorMap`
+    // (src/errors.ts:11) returns the module-local `overrideErrorMap`, which is
+    // initialised to `defaultErrorMap`, the DEFAULT import of ./locales/en
+    // (errors.ts:1 `import defaultErrorMap from "./locales/en"`). That default
+    // export is the `errorMap` const, defined at src/locales/en.ts:4
+    // (`const errorMap: ZodErrorMap = ...`; `export default errorMap` :150).
+    // So the map object returned by default resolves to src/locales/en.ts:4 —
+    // verified by reading errors.ts (lines 1-13) and locales/en.ts.
+    id: "cf-zod-geterrormap-default-001",
+    category: "cross-file-navigation",
+    style: "qa",
+    target: "oss-zod",
+    prompt:
+      "The exported `getErrorMap` function returns whichever error map is currently active, which defaults to the library's built-in English map. Trace to where that default map object is defined and give its definition location as path:line. Answer with a single line.",
+    grader: { kind: "path-line-set", key: ["src/locales/en.ts:4"] },
+    timeoutSec: T,
+    tags: ["authored", "medium", "ts"],
+  },
+  {
+    // rename-refactor (multi-file, ≥ 3 edit sites): `getErrorMap` occurs in
+    // src/errors.ts (def :11), src/types.ts (import :1 + calls :3904,:3921),
+    // src/helpers/parseUtil.ts (import :1 + call :76), and mirrored in
+    // deno/lib/{errors,types,helpers/parseUtil}.ts — 6 files total, verified by
+    //   grep -rln "getErrorMap" src deno   (no __tests__ hit, so error.test.ts,
+    // which only touches setErrorMap/defaultErrorMap via `z.`, still passes and
+    // the must-not-match tree scan forces the deno mirror to be updated too).
+    id: "rr-zod-geterrormap-001",
+    category: "rename-refactor",
+    style: "edit",
+    target: "oss-zod",
+    prompt:
+      "Rename the exported function `getErrorMap` to `resolveErrorMap` throughout the repository, including the deno/lib mirror, updating every reference. Keep behavior identical.",
+    grader: {
+      kind: "test-diff",
+      testCommand: ["npx", "jest", "--config", "./configs/ts-jest.config.json", "src/__tests__/error.test.ts"],
+      mustMatch: ["\\bresolveErrorMap\\b"],
+      mustNotMatch: ["\\bgetErrorMap\\b"],
+    },
+    timeoutSec: EDIT_T,
+    tags: ["authored", "medium", "ts"],
+  },
+
   // ── self (this repo at tag bench-self-v1) ─────────────────────────────────
   {
     id: "sl-self-runpipeline-001",
@@ -459,6 +524,79 @@ export const SEED_TASKS: BenchTask[] = [
       testCommand: ["npx", "vitest", "run", "test/chunks.test.ts"],
       mustMatch: ["\\bbyteOffsetFor\\b"],
       mustNotMatch: ["\\bmakeByteOffset\\b"],
+    },
+    timeoutSec: EDIT_T,
+    tags: ["authored", "medium", "ts"],
+  },
+
+  // ── self: SK-D11 deeper multi-hop additions ───────────────────────────────
+  {
+    // callers-impact (3 distributed call sites across two modules, deeper than
+    // the 1- and 2-site self callers tasks above). `openHealthy` is defined at
+    // src/storage/health.ts:116; verified at tag bench-self-v1 its call sites
+    // (excluding the definition) are cli.ts:29, cli.ts:54, server/server.ts:78 —
+    //   git show bench-self-v1:<f> | grep -n 'openHealthy('  over src/*.
+    id: "ci-self-openhealthy-callers-001",
+    category: "callers-impact",
+    style: "qa",
+    target: "self",
+    prompt:
+      "List every call site of the function `openHealthy`, as path:line, one per line. Answer only with the list.",
+    grader: { kind: "path-line-set", key: ["src/cli.ts:29", "src/cli.ts:54", "src/server/server.ts:78"] },
+    timeoutSec: T,
+    tags: ["authored", "medium", "ts"],
+  },
+  {
+    // cross-file-navigation (two-hop, cli → hooks → resolve): the CLI's index
+    // command calls runPipeline with `graphHooks` (src/graph/hooks.ts); that
+    // object's `resolve` hook is wired to `resolveEdges` (hooks.ts:16
+    // `resolve: resolveEdges`, imported hooks.ts:3 from "./resolve"), which is
+    // defined at src/graph/resolve.ts:229 — verified at tag bench-self-v1.
+    id: "cf-self-hooks-resolveedges-001",
+    category: "cross-file-navigation",
+    style: "qa",
+    target: "self",
+    prompt:
+      "The CLI's index command runs the pipeline with a set of graph hooks. The hook that runs after rows are persisted resolves cross-file edges. Give the definition location of the function wired to that post-persist hook, as path:line. Answer with a single line.",
+    grader: { kind: "path-line-set", key: ["src/graph/resolve.ts:229"] },
+    timeoutSec: T,
+    tags: ["authored", "medium", "ts"],
+  },
+  {
+    // cross-file-navigation (two-hop, cli → runPipeline → evaluateFile): from
+    // src/cli.ts the index command calls runPipeline (run.ts:67), whose per-file
+    // loop calls `evaluateFile` (run.ts:85) — the function that SHA-256s a file
+    // and decides skip vs. index against the existing indexed_files row.
+    // `evaluateFile` is defined at src/pipeline/changes.ts:25 — verified at tag.
+    id: "cf-self-cli-to-evaluatefile-001",
+    category: "cross-file-navigation",
+    style: "qa",
+    target: "self",
+    prompt:
+      "Starting from src/cli.ts, trace to the function that decides, for one discovered file, whether its contents have changed since it was last recorded (by hashing and comparing). Give its definition location as path:line. Answer with a single line.",
+    grader: { kind: "path-line-set", key: ["src/pipeline/changes.ts:25"] },
+    timeoutSec: T,
+    tags: ["authored", "medium", "ts"],
+  },
+  {
+    // rename-refactor (multi-file, ≥ 3 edit sites incl. tests): `discoverFiles`
+    // is defined at src/pipeline/discovery.ts:60 and referenced in
+    // src/pipeline/run.ts (import + call), test/discovery.test.ts (import + 4
+    // uses) and test/prune.test.ts (import + calls) — 4 files, verified at tag
+    // by counting occurrences per file. discovery.test.ts imports it directly,
+    // so it both exercises the rename and must be updated to pass; the
+    // must-not-match tree scan also forces the prune.test.ts references over.
+    id: "rr-self-discoverfiles-001",
+    category: "rename-refactor",
+    style: "edit",
+    target: "self",
+    prompt:
+      "Rename the exported function `discoverFiles` to `enumerateFiles` throughout the repository, including all test references, updating every use. Keep behavior identical.",
+    grader: {
+      kind: "test-diff",
+      testCommand: ["npx", "vitest", "run", "test/discovery.test.ts"],
+      mustMatch: ["\\benumerateFiles\\b"],
+      mustNotMatch: ["\\bdiscoverFiles\\b"],
     },
     timeoutSec: EDIT_T,
     tags: ["authored", "medium", "ts"],

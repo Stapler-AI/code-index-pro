@@ -1,7 +1,7 @@
 import { execFileSync } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
 import { join, resolve } from "node:path";
-import { afterEach, beforeAll, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it } from "vitest";
 import { buildFixtureRepo, FixtureRepo } from "./helpers/fixtures";
 
 const PACKAGE_ROOT = resolve(__dirname, "..");
@@ -18,13 +18,6 @@ function runBin(cwd: string, ...args: string[]): string {
 describe("packaged bin (FR-705)", () => {
   let repo: FixtureRepo;
 
-  beforeAll(() => {
-    // CI-style invocation builds before testing; fall back to building here.
-    if (!existsSync(BIN_PATH)) {
-      console.error("dist/cli.js missing — running a fallback build for bin tests");
-      execFileSync("npm", ["run", "build"], { cwd: PACKAGE_ROOT, stdio: ["ignore", "ignore", "inherit"] });
-    }
-  });
   afterEach(() => repo?.cleanup());
 
   it("package.json wires the code-index bin to a built, shebang'd entry point", () => {

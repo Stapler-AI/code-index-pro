@@ -1,0 +1,3478 @@
+[
+  {
+    "id": "gen-arch-oss-zod-configs_rollup_config_js-df8bacbe",
+    "category": "architecture",
+    "style": "qa",
+    "target": "oss-zod",
+    "prompt": "List every module imported by configs/rollup.config.js, as the import specifier string exactly as written, one per line. Answer only with the list.",
+    "grader": {
+      "kind": "set",
+      "key": [
+        "@rollup/plugin-typescript"
+      ]
+    },
+    "timeoutSec": 300,
+    "tags": [
+      "generated:v1",
+      "medium",
+      "js"
+    ]
+  },
+  {
+    "id": "gen-arch-oss-zod-configs_vitest_config_ts-fecb6acb",
+    "category": "architecture",
+    "style": "qa",
+    "target": "oss-zod",
+    "prompt": "List every module imported by configs/vitest.config.ts, as the import specifier string exactly as written, one per line. Answer only with the list.",
+    "grader": {
+      "kind": "set",
+      "key": [
+        "vitest/config"
+      ]
+    },
+    "timeoutSec": 300,
+    "tags": [
+      "generated:v1",
+      "medium",
+      "ts"
+    ]
+  },
+  {
+    "id": "gen-arch-oss-zod-deno_build_mjs-4467d144",
+    "category": "architecture",
+    "style": "qa",
+    "target": "oss-zod",
+    "prompt": "List every module imported by deno-build.mjs, as the import specifier string exactly as written, one per line. Answer only with the list.",
+    "grader": {
+      "kind": "set",
+      "key": [
+        "fs",
+        "path"
+      ]
+    },
+    "timeoutSec": 300,
+    "tags": [
+      "generated:v1",
+      "medium",
+      "js"
+    ]
+  },
+  {
+    "id": "gen-arch-oss-zod-deno_lib_ZodError_ts-03fedfc6",
+    "category": "architecture",
+    "style": "qa",
+    "target": "oss-zod",
+    "prompt": "List every module imported by deno/lib/ZodError.ts, as the import specifier string exactly as written, one per line. Answer only with the list.",
+    "grader": {
+      "kind": "set",
+      "key": [
+        "./helpers/typeAliases.ts",
+        "./helpers/util.ts",
+        "./index.ts"
+      ]
+    },
+    "timeoutSec": 300,
+    "tags": [
+      "generated:v1",
+      "medium",
+      "ts"
+    ]
+  },
+  {
+    "id": "gen-arch-oss-zod-deno_lib___tests___all_errors_test_ts-0db04853",
+    "category": "architecture",
+    "style": "qa",
+    "target": "oss-zod",
+    "prompt": "List every module imported by deno/lib/__tests__/all-errors.test.ts, as the import specifier string exactly as written, one per line. Answer only with the list.",
+    "grader": {
+      "kind": "set",
+      "key": [
+        "../helpers/util.ts",
+        "../index.ts",
+        "https://deno.land/x/expect@v0.2.6/mod.ts"
+      ]
+    },
+    "timeoutSec": 300,
+    "tags": [
+      "generated:v1",
+      "medium",
+      "ts"
+    ]
+  },
+  {
+    "id": "gen-arch-oss-zod-deno_lib___tests___anyunknown_test_ts-adee37f9",
+    "category": "architecture",
+    "style": "qa",
+    "target": "oss-zod",
+    "prompt": "List every module imported by deno/lib/__tests__/anyunknown.test.ts, as the import specifier string exactly as written, one per line. Answer only with the list.",
+    "grader": {
+      "kind": "set",
+      "key": [
+        "../helpers/util.ts",
+        "../index.ts",
+        "https://deno.land/x/expect@v0.2.6/mod.ts"
+      ]
+    },
+    "timeoutSec": 300,
+    "tags": [
+      "generated:v1",
+      "medium",
+      "ts"
+    ]
+  },
+  {
+    "id": "gen-arch-oss-zod-deno_lib___tests___array_test_ts-01ab2d1f",
+    "category": "architecture",
+    "style": "qa",
+    "target": "oss-zod",
+    "prompt": "List every module imported by deno/lib/__tests__/array.test.ts, as the import specifier string exactly as written, one per line. Answer only with the list.",
+    "grader": {
+      "kind": "set",
+      "key": [
+        "../helpers/util.ts",
+        "../index.ts",
+        "https://deno.land/x/expect@v0.2.6/mod.ts"
+      ]
+    },
+    "timeoutSec": 300,
+    "tags": [
+      "generated:v1",
+      "medium",
+      "ts"
+    ]
+  },
+  {
+    "id": "gen-arch-oss-zod-deno_lib___tests___async_parsing_test_ts-9b4832d9",
+    "category": "architecture",
+    "style": "qa",
+    "target": "oss-zod",
+    "prompt": "List every module imported by deno/lib/__tests__/async-parsing.test.ts, as the import specifier string exactly as written, one per line. Answer only with the list.",
+    "grader": {
+      "kind": "set",
+      "key": [
+        "../index.ts",
+        "https://deno.land/x/expect@v0.2.6/mod.ts"
+      ]
+    },
+    "timeoutSec": 300,
+    "tags": [
+      "generated:v1",
+      "medium",
+      "ts"
+    ]
+  },
+  {
+    "id": "gen-arch-oss-zod-deno_lib___tests___async_refinements_test_ts-54d21dce",
+    "category": "architecture",
+    "style": "qa",
+    "target": "oss-zod",
+    "prompt": "List every module imported by deno/lib/__tests__/async-refinements.test.ts, as the import specifier string exactly as written, one per line. Answer only with the list.",
+    "grader": {
+      "kind": "set",
+      "key": [
+        "../index.ts",
+        "https://deno.land/x/expect@v0.2.6/mod.ts"
+      ]
+    },
+    "timeoutSec": 300,
+    "tags": [
+      "generated:v1",
+      "medium",
+      "ts"
+    ]
+  },
+  {
+    "id": "gen-arch-oss-zod-deno_lib___tests___base_test_ts-e15cd588",
+    "category": "architecture",
+    "style": "qa",
+    "target": "oss-zod",
+    "prompt": "List every module imported by deno/lib/__tests__/base.test.ts, as the import specifier string exactly as written, one per line. Answer only with the list.",
+    "grader": {
+      "kind": "set",
+      "key": [
+        "../helpers/util.ts",
+        "../index.ts",
+        "https://deno.land/x/expect@v0.2.6/mod.ts"
+      ]
+    },
+    "timeoutSec": 300,
+    "tags": [
+      "generated:v1",
+      "medium",
+      "ts"
+    ]
+  },
+  {
+    "id": "gen-arch-oss-zod-deno_lib___tests___bigint_test_ts-b464c1b0",
+    "category": "architecture",
+    "style": "qa",
+    "target": "oss-zod",
+    "prompt": "List every module imported by deno/lib/__tests__/bigint.test.ts, as the import specifier string exactly as written, one per line. Answer only with the list.",
+    "grader": {
+      "kind": "set",
+      "key": [
+        "../index.ts",
+        "https://deno.land/x/expect@v0.2.6/mod.ts"
+      ]
+    },
+    "timeoutSec": 300,
+    "tags": [
+      "generated:v1",
+      "medium",
+      "ts"
+    ]
+  },
+  {
+    "id": "gen-arch-oss-zod-deno_lib___tests___branded_test_ts-977f5f98",
+    "category": "architecture",
+    "style": "qa",
+    "target": "oss-zod",
+    "prompt": "List every module imported by deno/lib/__tests__/branded.test.ts, as the import specifier string exactly as written, one per line. Answer only with the list.",
+    "grader": {
+      "kind": "set",
+      "key": [
+        "../helpers/util.ts",
+        "../index.ts",
+        "https://deno.land/x/expect@v0.2.6/mod.ts"
+      ]
+    },
+    "timeoutSec": 300,
+    "tags": [
+      "generated:v1",
+      "medium",
+      "ts"
+    ]
+  },
+  {
+    "id": "gen-arch-oss-zod-deno_lib___tests___catch_test_ts-c679f688",
+    "category": "architecture",
+    "style": "qa",
+    "target": "oss-zod",
+    "prompt": "List every module imported by deno/lib/__tests__/catch.test.ts, as the import specifier string exactly as written, one per line. Answer only with the list.",
+    "grader": {
+      "kind": "set",
+      "key": [
+        "../helpers/util.ts",
+        "../index.ts",
+        "https://deno.land/x/expect@v0.2.6/mod.ts"
+      ]
+    },
+    "timeoutSec": 300,
+    "tags": [
+      "generated:v1",
+      "medium",
+      "ts"
+    ]
+  },
+  {
+    "id": "gen-arch-oss-zod-deno_lib___tests___coerce_test_ts-d8f50092",
+    "category": "architecture",
+    "style": "qa",
+    "target": "oss-zod",
+    "prompt": "List every module imported by deno/lib/__tests__/coerce.test.ts, as the import specifier string exactly as written, one per line. Answer only with the list.",
+    "grader": {
+      "kind": "set",
+      "key": [
+        "../index.ts",
+        "https://deno.land/x/expect@v0.2.6/mod.ts"
+      ]
+    },
+    "timeoutSec": 300,
+    "tags": [
+      "generated:v1",
+      "medium",
+      "ts"
+    ]
+  },
+  {
+    "id": "gen-arch-oss-zod-deno_lib___tests___complex_test_ts-f1063a70",
+    "category": "architecture",
+    "style": "qa",
+    "target": "oss-zod",
+    "prompt": "List every module imported by deno/lib/__tests__/complex.test.ts, as the import specifier string exactly as written, one per line. Answer only with the list.",
+    "grader": {
+      "kind": "set",
+      "key": [
+        "./crazySchema.ts",
+        "https://deno.land/x/expect@v0.2.6/mod.ts"
+      ]
+    },
+    "timeoutSec": 300,
+    "tags": [
+      "generated:v1",
+      "medium",
+      "ts"
+    ]
+  },
+  {
+    "id": "gen-arch-oss-zod-deno_lib___tests___crazySchema_ts-7e9ac789",
+    "category": "architecture",
+    "style": "qa",
+    "target": "oss-zod",
+    "prompt": "List every module imported by deno/lib/__tests__/crazySchema.ts, as the import specifier string exactly as written, one per line. Answer only with the list.",
+    "grader": {
+      "kind": "set",
+      "key": [
+        "../index.ts"
+      ]
+    },
+    "timeoutSec": 300,
+    "tags": [
+      "generated:v1",
+      "medium",
+      "ts"
+    ]
+  },
+  {
+    "id": "gen-arch-oss-zod-deno_lib___tests___custom_test_ts-a41d4cae",
+    "category": "architecture",
+    "style": "qa",
+    "target": "oss-zod",
+    "prompt": "List every module imported by deno/lib/__tests__/custom.test.ts, as the import specifier string exactly as written, one per line. Answer only with the list.",
+    "grader": {
+      "kind": "set",
+      "key": [
+        "../index.ts",
+        "https://deno.land/x/expect@v0.2.6/mod.ts"
+      ]
+    },
+    "timeoutSec": 300,
+    "tags": [
+      "generated:v1",
+      "medium",
+      "ts"
+    ]
+  },
+  {
+    "id": "gen-arch-oss-zod-deno_lib___tests___date_test_ts-542c4405",
+    "category": "architecture",
+    "style": "qa",
+    "target": "oss-zod",
+    "prompt": "List every module imported by deno/lib/__tests__/date.test.ts, as the import specifier string exactly as written, one per line. Answer only with the list.",
+    "grader": {
+      "kind": "set",
+      "key": [
+        "../index.ts",
+        "https://deno.land/x/expect@v0.2.6/mod.ts"
+      ]
+    },
+    "timeoutSec": 300,
+    "tags": [
+      "generated:v1",
+      "medium",
+      "ts"
+    ]
+  },
+  {
+    "id": "gen-arch-oss-zod-deno_lib___tests___deepmasking_test_ts-00d280b6",
+    "category": "architecture",
+    "style": "qa",
+    "target": "oss-zod",
+    "prompt": "List every module imported by deno/lib/__tests__/deepmasking.test.ts, as the import specifier string exactly as written, one per line. Answer only with the list.",
+    "grader": {
+      "kind": "set",
+      "key": [
+        "../index.ts",
+        "https://deno.land/x/expect@v0.2.6/mod.ts"
+      ]
+    },
+    "timeoutSec": 300,
+    "tags": [
+      "generated:v1",
+      "medium",
+      "ts"
+    ]
+  },
+  {
+    "id": "gen-arch-oss-zod-deno_lib___tests___default_test_ts-55354b9c",
+    "category": "architecture",
+    "style": "qa",
+    "target": "oss-zod",
+    "prompt": "List every module imported by deno/lib/__tests__/default.test.ts, as the import specifier string exactly as written, one per line. Answer only with the list.",
+    "grader": {
+      "kind": "set",
+      "key": [
+        "../helpers/util.ts",
+        "../index.ts",
+        "https://deno.land/x/expect@v0.2.6/mod.ts"
+      ]
+    },
+    "timeoutSec": 300,
+    "tags": [
+      "generated:v1",
+      "medium",
+      "ts"
+    ]
+  },
+  {
+    "id": "gen-arch-oss-zod-deno_lib___tests___description_test_ts-74bc1b90",
+    "category": "architecture",
+    "style": "qa",
+    "target": "oss-zod",
+    "prompt": "List every module imported by deno/lib/__tests__/description.test.ts, as the import specifier string exactly as written, one per line. Answer only with the list.",
+    "grader": {
+      "kind": "set",
+      "key": [
+        "../index.ts",
+        "https://deno.land/x/expect@v0.2.6/mod.ts"
+      ]
+    },
+    "timeoutSec": 300,
+    "tags": [
+      "generated:v1",
+      "medium",
+      "ts"
+    ]
+  },
+  {
+    "id": "gen-arch-oss-zod-deno_lib___tests___discriminated_unions_test_ts-2144379a",
+    "category": "architecture",
+    "style": "qa",
+    "target": "oss-zod",
+    "prompt": "List every module imported by deno/lib/__tests__/discriminated-unions.test.ts, as the import specifier string exactly as written, one per line. Answer only with the list.",
+    "grader": {
+      "kind": "set",
+      "key": [
+        "../index.ts",
+        "https://deno.land/x/expect@v0.2.6/mod.ts"
+      ]
+    },
+    "timeoutSec": 300,
+    "tags": [
+      "generated:v1",
+      "medium",
+      "ts"
+    ]
+  },
+  {
+    "id": "gen-arch-oss-zod-deno_lib___tests___enum_test_ts-3ab64b7c",
+    "category": "architecture",
+    "style": "qa",
+    "target": "oss-zod",
+    "prompt": "List every module imported by deno/lib/__tests__/enum.test.ts, as the import specifier string exactly as written, one per line. Answer only with the list.",
+    "grader": {
+      "kind": "set",
+      "key": [
+        "../helpers/util.ts",
+        "../index.ts",
+        "https://deno.land/x/expect@v0.2.6/mod.ts"
+      ]
+    },
+    "timeoutSec": 300,
+    "tags": [
+      "generated:v1",
+      "medium",
+      "ts"
+    ]
+  },
+  {
+    "id": "gen-arch-oss-zod-deno_lib___tests___error_test_ts-8442da4b",
+    "category": "architecture",
+    "style": "qa",
+    "target": "oss-zod",
+    "prompt": "List every module imported by deno/lib/__tests__/error.test.ts, as the import specifier string exactly as written, one per line. Answer only with the list.",
+    "grader": {
+      "kind": "set",
+      "key": [
+        "../ZodError.ts",
+        "../helpers/util.ts",
+        "../index.ts",
+        "https://deno.land/x/expect@v0.2.6/mod.ts"
+      ]
+    },
+    "timeoutSec": 300,
+    "tags": [
+      "generated:v1",
+      "medium",
+      "ts"
+    ]
+  },
+  {
+    "id": "gen-arch-oss-zod-deno_lib___tests___firstparty_test_ts-ca59a3d9",
+    "category": "architecture",
+    "style": "qa",
+    "target": "oss-zod",
+    "prompt": "List every module imported by deno/lib/__tests__/firstparty.test.ts, as the import specifier string exactly as written, one per line. Answer only with the list.",
+    "grader": {
+      "kind": "set",
+      "key": [
+        "../helpers/util.ts",
+        "../index.ts",
+        "https://deno.land/x/expect@v0.2.6/mod.ts"
+      ]
+    },
+    "timeoutSec": 300,
+    "tags": [
+      "generated:v1",
+      "medium",
+      "ts"
+    ]
+  },
+  {
+    "id": "gen-arch-oss-zod-deno_lib___tests___firstpartyschematypes_test_ts-3bb73d10",
+    "category": "architecture",
+    "style": "qa",
+    "target": "oss-zod",
+    "prompt": "List every module imported by deno/lib/__tests__/firstpartyschematypes.test.ts, as the import specifier string exactly as written, one per line. Answer only with the list.",
+    "grader": {
+      "kind": "set",
+      "key": [
+        "../helpers/util.ts",
+        "../index.ts",
+        "https://deno.land/x/expect@v0.2.6/mod.ts"
+      ]
+    },
+    "timeoutSec": 300,
+    "tags": [
+      "generated:v1",
+      "medium",
+      "ts"
+    ]
+  },
+  {
+    "id": "gen-arch-oss-zod-deno_lib___tests___function_test_ts-f9201490",
+    "category": "architecture",
+    "style": "qa",
+    "target": "oss-zod",
+    "prompt": "List every module imported by deno/lib/__tests__/function.test.ts, as the import specifier string exactly as written, one per line. Answer only with the list.",
+    "grader": {
+      "kind": "set",
+      "key": [
+        "../helpers/util.ts",
+        "../index.ts",
+        "https://deno.land/x/expect@v0.2.6/mod.ts"
+      ]
+    },
+    "timeoutSec": 300,
+    "tags": [
+      "generated:v1",
+      "medium",
+      "ts"
+    ]
+  },
+  {
+    "id": "gen-arch-oss-zod-deno_lib___tests___generics_test_ts-9e40a97b",
+    "category": "architecture",
+    "style": "qa",
+    "target": "oss-zod",
+    "prompt": "List every module imported by deno/lib/__tests__/generics.test.ts, as the import specifier string exactly as written, one per line. Answer only with the list.",
+    "grader": {
+      "kind": "set",
+      "key": [
+        "../helpers/util.ts",
+        "../index.ts",
+        "https://deno.land/x/expect@v0.2.6/mod.ts"
+      ]
+    },
+    "timeoutSec": 300,
+    "tags": [
+      "generated:v1",
+      "medium",
+      "ts"
+    ]
+  },
+  {
+    "id": "gen-arch-oss-zod-deno_lib___tests___instanceof_test_ts-35df7b5a",
+    "category": "architecture",
+    "style": "qa",
+    "target": "oss-zod",
+    "prompt": "List every module imported by deno/lib/__tests__/instanceof.test.ts, as the import specifier string exactly as written, one per line. Answer only with the list.",
+    "grader": {
+      "kind": "set",
+      "key": [
+        "../helpers/util.ts",
+        "../index.ts",
+        "https://deno.land/x/expect@v0.2.6/mod.ts"
+      ]
+    },
+    "timeoutSec": 300,
+    "tags": [
+      "generated:v1",
+      "medium",
+      "ts"
+    ]
+  },
+  {
+    "id": "gen-arch-oss-zod-deno_lib___tests___intersection_test_ts-fde02dfe",
+    "category": "architecture",
+    "style": "qa",
+    "target": "oss-zod",
+    "prompt": "List every module imported by deno/lib/__tests__/intersection.test.ts, as the import specifier string exactly as written, one per line. Answer only with the list.",
+    "grader": {
+      "kind": "set",
+      "key": [
+        "../index.ts",
+        "https://deno.land/x/expect@v0.2.6/mod.ts"
+      ]
+    },
+    "timeoutSec": 300,
+    "tags": [
+      "generated:v1",
+      "medium",
+      "ts"
+    ]
+  },
+  {
+    "id": "gen-arch-oss-zod-deno_lib___tests___literal_test_ts-5a624b66",
+    "category": "architecture",
+    "style": "qa",
+    "target": "oss-zod",
+    "prompt": "List every module imported by deno/lib/__tests__/literal.test.ts, as the import specifier string exactly as written, one per line. Answer only with the list.",
+    "grader": {
+      "kind": "set",
+      "key": [
+        "../index.ts",
+        "https://deno.land/x/expect@v0.2.6/mod.ts"
+      ]
+    },
+    "timeoutSec": 300,
+    "tags": [
+      "generated:v1",
+      "medium",
+      "ts"
+    ]
+  },
+  {
+    "id": "gen-arch-oss-zod-deno_lib___tests___map_test_ts-8e866a2c",
+    "category": "architecture",
+    "style": "qa",
+    "target": "oss-zod",
+    "prompt": "List every module imported by deno/lib/__tests__/map.test.ts, as the import specifier string exactly as written, one per line. Answer only with the list.",
+    "grader": {
+      "kind": "set",
+      "key": [
+        "../helpers/util.ts",
+        "../index.ts",
+        "https://deno.land/x/expect@v0.2.6/mod.ts"
+      ]
+    },
+    "timeoutSec": 300,
+    "tags": [
+      "generated:v1",
+      "medium",
+      "ts"
+    ]
+  },
+  {
+    "id": "gen-arch-oss-zod-deno_lib___tests___masking_test_ts-76e6a0df",
+    "category": "architecture",
+    "style": "qa",
+    "target": "oss-zod",
+    "prompt": "List every module imported by deno/lib/__tests__/masking.test.ts, as the import specifier string exactly as written, one per line. Answer only with the list.",
+    "grader": {
+      "kind": "set",
+      "key": [
+        "../index.ts",
+        "https://deno.land/x/expect@v0.2.6/mod.ts"
+      ]
+    },
+    "timeoutSec": 300,
+    "tags": [
+      "generated:v1",
+      "medium",
+      "ts"
+    ]
+  },
+  {
+    "id": "gen-arch-oss-zod-deno_lib___tests___mocker_test_ts-c13ff96f",
+    "category": "architecture",
+    "style": "qa",
+    "target": "oss-zod",
+    "prompt": "List every module imported by deno/lib/__tests__/mocker.test.ts, as the import specifier string exactly as written, one per line. Answer only with the list.",
+    "grader": {
+      "kind": "set",
+      "key": [
+        "./Mocker.ts",
+        "https://deno.land/x/expect@v0.2.6/mod.ts"
+      ]
+    },
+    "timeoutSec": 300,
+    "tags": [
+      "generated:v1",
+      "medium",
+      "ts"
+    ]
+  },
+  {
+    "id": "gen-arch-oss-zod-deno_lib___tests___nan_test_ts-28e31409",
+    "category": "architecture",
+    "style": "qa",
+    "target": "oss-zod",
+    "prompt": "List every module imported by deno/lib/__tests__/nan.test.ts, as the import specifier string exactly as written, one per line. Answer only with the list.",
+    "grader": {
+      "kind": "set",
+      "key": [
+        "../index.ts",
+        "https://deno.land/x/expect@v0.2.6/mod.ts"
+      ]
+    },
+    "timeoutSec": 300,
+    "tags": [
+      "generated:v1",
+      "medium",
+      "ts"
+    ]
+  },
+  {
+    "id": "gen-arch-oss-zod-deno_lib___tests___nativeEnum_test_ts-bb740fff",
+    "category": "architecture",
+    "style": "qa",
+    "target": "oss-zod",
+    "prompt": "List every module imported by deno/lib/__tests__/nativeEnum.test.ts, as the import specifier string exactly as written, one per line. Answer only with the list.",
+    "grader": {
+      "kind": "set",
+      "key": [
+        "../helpers/util.ts",
+        "../index.ts",
+        "https://deno.land/x/expect@v0.2.6/mod.ts"
+      ]
+    },
+    "timeoutSec": 300,
+    "tags": [
+      "generated:v1",
+      "medium",
+      "ts"
+    ]
+  },
+  {
+    "id": "gen-arch-oss-zod-deno_lib___tests___nullable_test_ts-161b9582",
+    "category": "architecture",
+    "style": "qa",
+    "target": "oss-zod",
+    "prompt": "List every module imported by deno/lib/__tests__/nullable.test.ts, as the import specifier string exactly as written, one per line. Answer only with the list.",
+    "grader": {
+      "kind": "set",
+      "key": [
+        "../index.ts",
+        "https://deno.land/x/expect@v0.2.6/mod.ts"
+      ]
+    },
+    "timeoutSec": 300,
+    "tags": [
+      "generated:v1",
+      "medium",
+      "ts"
+    ]
+  },
+  {
+    "id": "gen-arch-oss-zod-deno_lib___tests___number_test_ts-5a6582d3",
+    "category": "architecture",
+    "style": "qa",
+    "target": "oss-zod",
+    "prompt": "List every module imported by deno/lib/__tests__/number.test.ts, as the import specifier string exactly as written, one per line. Answer only with the list.",
+    "grader": {
+      "kind": "set",
+      "key": [
+        "../index.ts",
+        "https://deno.land/x/expect@v0.2.6/mod.ts"
+      ]
+    },
+    "timeoutSec": 300,
+    "tags": [
+      "generated:v1",
+      "medium",
+      "ts"
+    ]
+  },
+  {
+    "id": "gen-arch-oss-zod-deno_lib___tests___object_augmentation_test_ts-bf686748",
+    "category": "architecture",
+    "style": "qa",
+    "target": "oss-zod",
+    "prompt": "List every module imported by deno/lib/__tests__/object-augmentation.test.ts, as the import specifier string exactly as written, one per line. Answer only with the list.",
+    "grader": {
+      "kind": "set",
+      "key": [
+        "../index.ts",
+        "https://deno.land/x/expect@v0.2.6/mod.ts"
+      ]
+    },
+    "timeoutSec": 300,
+    "tags": [
+      "generated:v1",
+      "medium",
+      "ts"
+    ]
+  },
+  {
+    "id": "gen-arch-oss-zod-deno_lib___tests___object_test_ts-f53f24dc",
+    "category": "architecture",
+    "style": "qa",
+    "target": "oss-zod",
+    "prompt": "List every module imported by deno/lib/__tests__/object.test.ts, as the import specifier string exactly as written, one per line. Answer only with the list.",
+    "grader": {
+      "kind": "set",
+      "key": [
+        "../helpers/util.ts",
+        "../index.ts",
+        "https://deno.land/x/expect@v0.2.6/mod.ts"
+      ]
+    },
+    "timeoutSec": 300,
+    "tags": [
+      "generated:v1",
+      "medium",
+      "ts"
+    ]
+  },
+  {
+    "id": "gen-arch-oss-zod-deno_lib___tests___optional_test_ts-eac9e3b3",
+    "category": "architecture",
+    "style": "qa",
+    "target": "oss-zod",
+    "prompt": "List every module imported by deno/lib/__tests__/optional.test.ts, as the import specifier string exactly as written, one per line. Answer only with the list.",
+    "grader": {
+      "kind": "set",
+      "key": [
+        "../index.ts",
+        "https://deno.land/x/expect@v0.2.6/mod.ts"
+      ]
+    },
+    "timeoutSec": 300,
+    "tags": [
+      "generated:v1",
+      "medium",
+      "ts"
+    ]
+  },
+  {
+    "id": "gen-arch-oss-zod-deno_lib___tests___parseUtil_test_ts-fa101d36",
+    "category": "architecture",
+    "style": "qa",
+    "target": "oss-zod",
+    "prompt": "List every module imported by deno/lib/__tests__/parseUtil.test.ts, as the import specifier string exactly as written, one per line. Answer only with the list.",
+    "grader": {
+      "kind": "set",
+      "key": [
+        "../helpers/parseUtil.ts",
+        "https://deno.land/x/expect@v0.2.6/mod.ts"
+      ]
+    },
+    "timeoutSec": 300,
+    "tags": [
+      "generated:v1",
+      "medium",
+      "ts"
+    ]
+  },
+  {
+    "id": "gen-arch-oss-zod-deno_lib___tests___parser_test_ts-40e49a40",
+    "category": "architecture",
+    "style": "qa",
+    "target": "oss-zod",
+    "prompt": "List every module imported by deno/lib/__tests__/parser.test.ts, as the import specifier string exactly as written, one per line. Answer only with the list.",
+    "grader": {
+      "kind": "set",
+      "key": [
+        "../index.ts",
+        "https://deno.land/x/expect@v0.2.6/mod.ts"
+      ]
+    },
+    "timeoutSec": 300,
+    "tags": [
+      "generated:v1",
+      "medium",
+      "ts"
+    ]
+  },
+  {
+    "id": "gen-arch-oss-zod-deno_lib___tests___partials_test_ts-b5309833",
+    "category": "architecture",
+    "style": "qa",
+    "target": "oss-zod",
+    "prompt": "List every module imported by deno/lib/__tests__/partials.test.ts, as the import specifier string exactly as written, one per line. Answer only with the list.",
+    "grader": {
+      "kind": "set",
+      "key": [
+        "../helpers/util.ts",
+        "../index.ts",
+        "https://deno.land/x/expect@v0.2.6/mod.ts"
+      ]
+    },
+    "timeoutSec": 300,
+    "tags": [
+      "generated:v1",
+      "medium",
+      "ts"
+    ]
+  },
+  {
+    "id": "gen-arch-oss-zod-deno_lib___tests___pickomit_test_ts-0eb7ff5f",
+    "category": "architecture",
+    "style": "qa",
+    "target": "oss-zod",
+    "prompt": "List every module imported by deno/lib/__tests__/pickomit.test.ts, as the import specifier string exactly as written, one per line. Answer only with the list.",
+    "grader": {
+      "kind": "set",
+      "key": [
+        "../helpers/util.ts",
+        "../index.ts",
+        "https://deno.land/x/expect@v0.2.6/mod.ts"
+      ]
+    },
+    "timeoutSec": 300,
+    "tags": [
+      "generated:v1",
+      "medium",
+      "ts"
+    ]
+  },
+  {
+    "id": "gen-arch-oss-zod-deno_lib___tests___pipeline_test_ts-033a5c18",
+    "category": "architecture",
+    "style": "qa",
+    "target": "oss-zod",
+    "prompt": "List every module imported by deno/lib/__tests__/pipeline.test.ts, as the import specifier string exactly as written, one per line. Answer only with the list.",
+    "grader": {
+      "kind": "set",
+      "key": [
+        "../index.ts",
+        "https://deno.land/x/expect@v0.2.6/mod.ts"
+      ]
+    },
+    "timeoutSec": 300,
+    "tags": [
+      "generated:v1",
+      "medium",
+      "ts"
+    ]
+  },
+  {
+    "id": "gen-arch-oss-zod-deno_lib___tests___preprocess_test_ts-d36fdc05",
+    "category": "architecture",
+    "style": "qa",
+    "target": "oss-zod",
+    "prompt": "List every module imported by deno/lib/__tests__/preprocess.test.ts, as the import specifier string exactly as written, one per line. Answer only with the list.",
+    "grader": {
+      "kind": "set",
+      "key": [
+        "../helpers/util.ts",
+        "../index.ts",
+        "https://deno.land/x/expect@v0.2.6/mod.ts"
+      ]
+    },
+    "timeoutSec": 300,
+    "tags": [
+      "generated:v1",
+      "medium",
+      "ts"
+    ]
+  },
+  {
+    "id": "gen-arch-oss-zod-deno_lib___tests___primitive_test_ts-fda7b772",
+    "category": "architecture",
+    "style": "qa",
+    "target": "oss-zod",
+    "prompt": "List every module imported by deno/lib/__tests__/primitive.test.ts, as the import specifier string exactly as written, one per line. Answer only with the list.",
+    "grader": {
+      "kind": "set",
+      "key": [
+        "../helpers/util.ts",
+        "../index.ts",
+        "./Mocker.ts",
+        "https://deno.land/x/expect@v0.2.6/mod.ts"
+      ]
+    },
+    "timeoutSec": 300,
+    "tags": [
+      "generated:v1",
+      "medium",
+      "ts"
+    ]
+  },
+  {
+    "id": "gen-arch-oss-zod-deno_lib___tests___promise_test_ts-0fd911f0",
+    "category": "architecture",
+    "style": "qa",
+    "target": "oss-zod",
+    "prompt": "List every module imported by deno/lib/__tests__/promise.test.ts, as the import specifier string exactly as written, one per line. Answer only with the list.",
+    "grader": {
+      "kind": "set",
+      "key": [
+        "../helpers/util.ts",
+        "../index.ts",
+        "https://deno.land/x/expect@v0.2.6/mod.ts"
+      ]
+    },
+    "timeoutSec": 300,
+    "tags": [
+      "generated:v1",
+      "medium",
+      "ts"
+    ]
+  },
+  {
+    "id": "gen-arch-oss-zod-deno_lib___tests___readonly_test_ts-4ab1cc43",
+    "category": "architecture",
+    "style": "qa",
+    "target": "oss-zod",
+    "prompt": "List every module imported by deno/lib/__tests__/readonly.test.ts, as the import specifier string exactly as written, one per line. Answer only with the list.",
+    "grader": {
+      "kind": "set",
+      "key": [
+        "../helpers/util.ts",
+        "../index.ts",
+        "https://deno.land/x/expect@v0.2.6/mod.ts"
+      ]
+    },
+    "timeoutSec": 300,
+    "tags": [
+      "generated:v1",
+      "medium",
+      "ts"
+    ]
+  },
+  {
+    "id": "gen-arch-oss-zod-deno_lib___tests___record_test_ts-041c1258",
+    "category": "architecture",
+    "style": "qa",
+    "target": "oss-zod",
+    "prompt": "List every module imported by deno/lib/__tests__/record.test.ts, as the import specifier string exactly as written, one per line. Answer only with the list.",
+    "grader": {
+      "kind": "set",
+      "key": [
+        "../helpers/util.ts",
+        "../index.ts",
+        "https://deno.land/x/expect@v0.2.6/mod.ts"
+      ]
+    },
+    "timeoutSec": 300,
+    "tags": [
+      "generated:v1",
+      "medium",
+      "ts"
+    ]
+  },
+  {
+    "id": "gen-arch-oss-zod-deno_lib___tests___recursive_test_ts-a21e7e9b",
+    "category": "architecture",
+    "style": "qa",
+    "target": "oss-zod",
+    "prompt": "List every module imported by deno/lib/__tests__/recursive.test.ts, as the import specifier string exactly as written, one per line. Answer only with the list.",
+    "grader": {
+      "kind": "set",
+      "key": [
+        "../index.ts",
+        "https://deno.land/x/expect@v0.2.6/mod.ts"
+      ]
+    },
+    "timeoutSec": 300,
+    "tags": [
+      "generated:v1",
+      "medium",
+      "ts"
+    ]
+  },
+  {
+    "id": "gen-arch-oss-zod-deno_lib___tests___refine_test_ts-18265155",
+    "category": "architecture",
+    "style": "qa",
+    "target": "oss-zod",
+    "prompt": "List every module imported by deno/lib/__tests__/refine.test.ts, as the import specifier string exactly as written, one per line. Answer only with the list.",
+    "grader": {
+      "kind": "set",
+      "key": [
+        "../ZodError.ts",
+        "../helpers/util.ts",
+        "../index.ts",
+        "https://deno.land/x/expect@v0.2.6/mod.ts"
+      ]
+    },
+    "timeoutSec": 300,
+    "tags": [
+      "generated:v1",
+      "medium",
+      "ts"
+    ]
+  },
+  {
+    "id": "gen-arch-oss-zod-deno_lib___tests___safeparse_test_ts-1534140c",
+    "category": "architecture",
+    "style": "qa",
+    "target": "oss-zod",
+    "prompt": "List every module imported by deno/lib/__tests__/safeparse.test.ts, as the import specifier string exactly as written, one per line. Answer only with the list.",
+    "grader": {
+      "kind": "set",
+      "key": [
+        "../index.ts",
+        "https://deno.land/x/expect@v0.2.6/mod.ts"
+      ]
+    },
+    "timeoutSec": 300,
+    "tags": [
+      "generated:v1",
+      "medium",
+      "ts"
+    ]
+  },
+  {
+    "id": "gen-arch-oss-zod-deno_lib___tests___set_test_ts-4aa68207",
+    "category": "architecture",
+    "style": "qa",
+    "target": "oss-zod",
+    "prompt": "List every module imported by deno/lib/__tests__/set.test.ts, as the import specifier string exactly as written, one per line. Answer only with the list.",
+    "grader": {
+      "kind": "set",
+      "key": [
+        "../helpers/util.ts",
+        "../index.ts",
+        "https://deno.land/x/expect@v0.2.6/mod.ts"
+      ]
+    },
+    "timeoutSec": 300,
+    "tags": [
+      "generated:v1",
+      "medium",
+      "ts"
+    ]
+  },
+  {
+    "id": "gen-arch-oss-zod-deno_lib___tests___string_test_ts-3f7b0d53",
+    "category": "architecture",
+    "style": "qa",
+    "target": "oss-zod",
+    "prompt": "List every module imported by deno/lib/__tests__/string.test.ts, as the import specifier string exactly as written, one per line. Answer only with the list.",
+    "grader": {
+      "kind": "set",
+      "key": [
+        "../index.ts",
+        "https://deno.land/x/expect@v0.2.6/mod.ts"
+      ]
+    },
+    "timeoutSec": 300,
+    "tags": [
+      "generated:v1",
+      "medium",
+      "ts"
+    ]
+  },
+  {
+    "id": "gen-arch-oss-zod-deno_lib___tests___transformer_test_ts-abda4bcd",
+    "category": "architecture",
+    "style": "qa",
+    "target": "oss-zod",
+    "prompt": "List every module imported by deno/lib/__tests__/transformer.test.ts, as the import specifier string exactly as written, one per line. Answer only with the list.",
+    "grader": {
+      "kind": "set",
+      "key": [
+        "../helpers/util.ts",
+        "../index.ts",
+        "https://deno.land/x/expect@v0.2.6/mod.ts"
+      ]
+    },
+    "timeoutSec": 300,
+    "tags": [
+      "generated:v1",
+      "medium",
+      "ts"
+    ]
+  },
+  {
+    "id": "gen-arch-oss-zod-deno_lib___tests___tuple_test_ts-33bcf2ef",
+    "category": "architecture",
+    "style": "qa",
+    "target": "oss-zod",
+    "prompt": "List every module imported by deno/lib/__tests__/tuple.test.ts, as the import specifier string exactly as written, one per line. Answer only with the list.",
+    "grader": {
+      "kind": "set",
+      "key": [
+        "../ZodError.ts",
+        "../helpers/util.ts",
+        "../index.ts",
+        "https://deno.land/x/expect@v0.2.6/mod.ts"
+      ]
+    },
+    "timeoutSec": 300,
+    "tags": [
+      "generated:v1",
+      "medium",
+      "ts"
+    ]
+  },
+  {
+    "id": "gen-arch-oss-zod-deno_lib___tests___unions_test_ts-a148d214",
+    "category": "architecture",
+    "style": "qa",
+    "target": "oss-zod",
+    "prompt": "List every module imported by deno/lib/__tests__/unions.test.ts, as the import specifier string exactly as written, one per line. Answer only with the list.",
+    "grader": {
+      "kind": "set",
+      "key": [
+        "../index.ts",
+        "https://deno.land/x/expect@v0.2.6/mod.ts"
+      ]
+    },
+    "timeoutSec": 300,
+    "tags": [
+      "generated:v1",
+      "medium",
+      "ts"
+    ]
+  },
+  {
+    "id": "gen-arch-oss-zod-deno_lib___tests___validations_test_ts-1f770196",
+    "category": "architecture",
+    "style": "qa",
+    "target": "oss-zod",
+    "prompt": "List every module imported by deno/lib/__tests__/validations.test.ts, as the import specifier string exactly as written, one per line. Answer only with the list.",
+    "grader": {
+      "kind": "set",
+      "key": [
+        "../index.ts",
+        "https://deno.land/x/expect@v0.2.6/mod.ts"
+      ]
+    },
+    "timeoutSec": 300,
+    "tags": [
+      "generated:v1",
+      "medium",
+      "ts"
+    ]
+  },
+  {
+    "id": "gen-arch-oss-zod-deno_lib___tests___void_test_ts-218c1dac",
+    "category": "architecture",
+    "style": "qa",
+    "target": "oss-zod",
+    "prompt": "List every module imported by deno/lib/__tests__/void.test.ts, as the import specifier string exactly as written, one per line. Answer only with the list.",
+    "grader": {
+      "kind": "set",
+      "key": [
+        "../helpers/util.ts",
+        "../index.ts",
+        "https://deno.land/x/expect@v0.2.6/mod.ts"
+      ]
+    },
+    "timeoutSec": 300,
+    "tags": [
+      "generated:v1",
+      "medium",
+      "ts"
+    ]
+  },
+  {
+    "id": "gen-arch-oss-zod-deno_lib_benchmarks_datetime_ts-46db6267",
+    "category": "architecture",
+    "style": "qa",
+    "target": "oss-zod",
+    "prompt": "List every module imported by deno/lib/benchmarks/datetime.ts, as the import specifier string exactly as written, one per line. Answer only with the list.",
+    "grader": {
+      "kind": "set",
+      "key": [
+        "benchmark"
+      ]
+    },
+    "timeoutSec": 300,
+    "tags": [
+      "generated:v1",
+      "medium",
+      "ts"
+    ]
+  },
+  {
+    "id": "gen-arch-oss-zod-deno_lib_benchmarks_discriminatedUnion_ts-cad3d9d4",
+    "category": "architecture",
+    "style": "qa",
+    "target": "oss-zod",
+    "prompt": "List every module imported by deno/lib/benchmarks/discriminatedUnion.ts, as the import specifier string exactly as written, one per line. Answer only with the list.",
+    "grader": {
+      "kind": "set",
+      "key": [
+        "../index.ts",
+        "benchmark"
+      ]
+    },
+    "timeoutSec": 300,
+    "tags": [
+      "generated:v1",
+      "medium",
+      "ts"
+    ]
+  },
+  {
+    "id": "gen-arch-oss-zod-deno_lib_benchmarks_index_ts-3f9e69e7",
+    "category": "architecture",
+    "style": "qa",
+    "target": "oss-zod",
+    "prompt": "List every module imported by deno/lib/benchmarks/index.ts, as the import specifier string exactly as written, one per line. Answer only with the list.",
+    "grader": {
+      "kind": "set",
+      "key": [
+        "./datetime.ts",
+        "./discriminatedUnion.ts",
+        "./ipv4.ts",
+        "./object.ts",
+        "./primitives.ts",
+        "./realworld.ts",
+        "./string.ts",
+        "./union.ts",
+        "benchmark"
+      ]
+    },
+    "timeoutSec": 300,
+    "tags": [
+      "generated:v1",
+      "medium",
+      "ts"
+    ]
+  },
+  {
+    "id": "gen-arch-oss-zod-deno_lib_benchmarks_ipv4_ts-59b1293e",
+    "category": "architecture",
+    "style": "qa",
+    "target": "oss-zod",
+    "prompt": "List every module imported by deno/lib/benchmarks/ipv4.ts, as the import specifier string exactly as written, one per line. Answer only with the list.",
+    "grader": {
+      "kind": "set",
+      "key": [
+        "benchmark"
+      ]
+    },
+    "timeoutSec": 300,
+    "tags": [
+      "generated:v1",
+      "medium",
+      "ts"
+    ]
+  },
+  {
+    "id": "gen-arch-oss-zod-deno_lib_benchmarks_object_ts-ad305d14",
+    "category": "architecture",
+    "style": "qa",
+    "target": "oss-zod",
+    "prompt": "List every module imported by deno/lib/benchmarks/object.ts, as the import specifier string exactly as written, one per line. Answer only with the list.",
+    "grader": {
+      "kind": "set",
+      "key": [
+        "../index.ts",
+        "benchmark"
+      ]
+    },
+    "timeoutSec": 300,
+    "tags": [
+      "generated:v1",
+      "medium",
+      "ts"
+    ]
+  },
+  {
+    "id": "gen-arch-oss-zod-deno_lib_benchmarks_primitives_ts-1d20b778",
+    "category": "architecture",
+    "style": "qa",
+    "target": "oss-zod",
+    "prompt": "List every module imported by deno/lib/benchmarks/primitives.ts, as the import specifier string exactly as written, one per line. Answer only with the list.",
+    "grader": {
+      "kind": "set",
+      "key": [
+        "../__tests__/Mocker.ts",
+        "../index.ts",
+        "benchmark"
+      ]
+    },
+    "timeoutSec": 300,
+    "tags": [
+      "generated:v1",
+      "medium",
+      "ts"
+    ]
+  },
+  {
+    "id": "gen-arch-oss-zod-deno_lib_benchmarks_realworld_ts-c76b57ed",
+    "category": "architecture",
+    "style": "qa",
+    "target": "oss-zod",
+    "prompt": "List every module imported by deno/lib/benchmarks/realworld.ts, as the import specifier string exactly as written, one per line. Answer only with the list.",
+    "grader": {
+      "kind": "set",
+      "key": [
+        "../index.ts",
+        "benchmark"
+      ]
+    },
+    "timeoutSec": 300,
+    "tags": [
+      "generated:v1",
+      "medium",
+      "ts"
+    ]
+  },
+  {
+    "id": "gen-arch-oss-zod-deno_lib_benchmarks_string_ts-c644a25f",
+    "category": "architecture",
+    "style": "qa",
+    "target": "oss-zod",
+    "prompt": "List every module imported by deno/lib/benchmarks/string.ts, as the import specifier string exactly as written, one per line. Answer only with the list.",
+    "grader": {
+      "kind": "set",
+      "key": [
+        "../index.ts",
+        "benchmark"
+      ]
+    },
+    "timeoutSec": 300,
+    "tags": [
+      "generated:v1",
+      "medium",
+      "ts"
+    ]
+  },
+  {
+    "id": "gen-arch-oss-zod-deno_lib_benchmarks_union_ts-196a6e2b",
+    "category": "architecture",
+    "style": "qa",
+    "target": "oss-zod",
+    "prompt": "List every module imported by deno/lib/benchmarks/union.ts, as the import specifier string exactly as written, one per line. Answer only with the list.",
+    "grader": {
+      "kind": "set",
+      "key": [
+        "../index.ts",
+        "benchmark"
+      ]
+    },
+    "timeoutSec": 300,
+    "tags": [
+      "generated:v1",
+      "medium",
+      "ts"
+    ]
+  },
+  {
+    "id": "gen-arch-oss-zod-deno_lib_errors_ts-8434c260",
+    "category": "architecture",
+    "style": "qa",
+    "target": "oss-zod",
+    "prompt": "List every module imported by deno/lib/errors.ts, as the import specifier string exactly as written, one per line. Answer only with the list.",
+    "grader": {
+      "kind": "set",
+      "key": [
+        "./ZodError.ts",
+        "./locales/en.ts"
+      ]
+    },
+    "timeoutSec": 300,
+    "tags": [
+      "generated:v1",
+      "medium",
+      "ts"
+    ]
+  },
+  {
+    "id": "gen-arch-oss-zod-deno_lib_helpers_parseUtil_ts-61f10a22",
+    "category": "architecture",
+    "style": "qa",
+    "target": "oss-zod",
+    "prompt": "List every module imported by deno/lib/helpers/parseUtil.ts, as the import specifier string exactly as written, one per line. Answer only with the list.",
+    "grader": {
+      "kind": "set",
+      "key": [
+        "../ZodError.ts",
+        "../errors.ts",
+        "../locales/en.ts",
+        "./util.ts"
+      ]
+    },
+    "timeoutSec": 300,
+    "tags": [
+      "generated:v1",
+      "medium",
+      "ts"
+    ]
+  },
+  {
+    "id": "gen-arch-oss-zod-deno_lib_helpers_partialUtil_ts-0af74899",
+    "category": "architecture",
+    "style": "qa",
+    "target": "oss-zod",
+    "prompt": "List every module imported by deno/lib/helpers/partialUtil.ts, as the import specifier string exactly as written, one per line. Answer only with the list.",
+    "grader": {
+      "kind": "set",
+      "key": [
+        "../index.ts"
+      ]
+    },
+    "timeoutSec": 300,
+    "tags": [
+      "generated:v1",
+      "medium",
+      "ts"
+    ]
+  },
+  {
+    "id": "gen-arch-oss-zod-deno_lib_index_ts-98216466",
+    "category": "architecture",
+    "style": "qa",
+    "target": "oss-zod",
+    "prompt": "List every module imported by deno/lib/index.ts, as the import specifier string exactly as written, one per line. Answer only with the list.",
+    "grader": {
+      "kind": "set",
+      "key": [
+        "./external.ts"
+      ]
+    },
+    "timeoutSec": 300,
+    "tags": [
+      "generated:v1",
+      "medium",
+      "ts"
+    ]
+  },
+  {
+    "id": "gen-arch-oss-zod-deno_lib_locales_en_ts-de3fff98",
+    "category": "architecture",
+    "style": "qa",
+    "target": "oss-zod",
+    "prompt": "List every module imported by deno/lib/locales/en.ts, as the import specifier string exactly as written, one per line. Answer only with the list.",
+    "grader": {
+      "kind": "set",
+      "key": [
+        "../ZodError.ts",
+        "../helpers/util.ts"
+      ]
+    },
+    "timeoutSec": 300,
+    "tags": [
+      "generated:v1",
+      "medium",
+      "ts"
+    ]
+  },
+  {
+    "id": "gen-arch-oss-zod-deno_lib_types_ts-1005ff58",
+    "category": "architecture",
+    "style": "qa",
+    "target": "oss-zod",
+    "prompt": "List every module imported by deno/lib/types.ts, as the import specifier string exactly as written, one per line. Answer only with the list.",
+    "grader": {
+      "kind": "set",
+      "key": [
+        "./ZodError.ts",
+        "./errors.ts",
+        "./helpers/enumUtil.ts",
+        "./helpers/errorUtil.ts",
+        "./helpers/parseUtil.ts",
+        "./helpers/partialUtil.ts",
+        "./helpers/typeAliases.ts",
+        "./helpers/util.ts"
+      ]
+    },
+    "timeoutSec": 300,
+    "tags": [
+      "generated:v1",
+      "medium",
+      "ts"
+    ]
+  },
+  {
+    "id": "gen-arch-oss-zod-playground_ts-cfae170f",
+    "category": "architecture",
+    "style": "qa",
+    "target": "oss-zod",
+    "prompt": "List every module imported by playground.ts, as the import specifier string exactly as written, one per line. Answer only with the list.",
+    "grader": {
+      "kind": "set",
+      "key": [
+        "./src"
+      ]
+    },
+    "timeoutSec": 300,
+    "tags": [
+      "generated:v1",
+      "medium",
+      "ts"
+    ]
+  },
+  {
+    "id": "gen-arch-oss-zod-src_ZodError_ts-edbe5a06",
+    "category": "architecture",
+    "style": "qa",
+    "target": "oss-zod",
+    "prompt": "List every module imported by src/ZodError.ts, as the import specifier string exactly as written, one per line. Answer only with the list.",
+    "grader": {
+      "kind": "set",
+      "key": [
+        ".",
+        "./helpers/typeAliases",
+        "./helpers/util"
+      ]
+    },
+    "timeoutSec": 300,
+    "tags": [
+      "generated:v1",
+      "medium",
+      "ts"
+    ]
+  },
+  {
+    "id": "gen-arch-oss-zod-src___tests___all_errors_test_ts-a5c6ee38",
+    "category": "architecture",
+    "style": "qa",
+    "target": "oss-zod",
+    "prompt": "List every module imported by src/__tests__/all-errors.test.ts, as the import specifier string exactly as written, one per line. Answer only with the list.",
+    "grader": {
+      "kind": "set",
+      "key": [
+        "../helpers/util",
+        "../index",
+        "@jest/globals"
+      ]
+    },
+    "timeoutSec": 300,
+    "tags": [
+      "generated:v1",
+      "medium",
+      "ts"
+    ]
+  },
+  {
+    "id": "gen-arch-oss-zod-src___tests___anyunknown_test_ts-309c4efc",
+    "category": "architecture",
+    "style": "qa",
+    "target": "oss-zod",
+    "prompt": "List every module imported by src/__tests__/anyunknown.test.ts, as the import specifier string exactly as written, one per line. Answer only with the list.",
+    "grader": {
+      "kind": "set",
+      "key": [
+        "../helpers/util",
+        "../index",
+        "@jest/globals"
+      ]
+    },
+    "timeoutSec": 300,
+    "tags": [
+      "generated:v1",
+      "medium",
+      "ts"
+    ]
+  },
+  {
+    "id": "gen-arch-oss-zod-src___tests___array_test_ts-d7f9ab46",
+    "category": "architecture",
+    "style": "qa",
+    "target": "oss-zod",
+    "prompt": "List every module imported by src/__tests__/array.test.ts, as the import specifier string exactly as written, one per line. Answer only with the list.",
+    "grader": {
+      "kind": "set",
+      "key": [
+        "../helpers/util",
+        "../index",
+        "@jest/globals"
+      ]
+    },
+    "timeoutSec": 300,
+    "tags": [
+      "generated:v1",
+      "medium",
+      "ts"
+    ]
+  },
+  {
+    "id": "gen-arch-oss-zod-src___tests___async_parsing_test_ts-217dfbdf",
+    "category": "architecture",
+    "style": "qa",
+    "target": "oss-zod",
+    "prompt": "List every module imported by src/__tests__/async-parsing.test.ts, as the import specifier string exactly as written, one per line. Answer only with the list.",
+    "grader": {
+      "kind": "set",
+      "key": [
+        "../index",
+        "@jest/globals"
+      ]
+    },
+    "timeoutSec": 300,
+    "tags": [
+      "generated:v1",
+      "medium",
+      "ts"
+    ]
+  },
+  {
+    "id": "gen-arch-oss-zod-src___tests___async_refinements_test_ts-80a394f7",
+    "category": "architecture",
+    "style": "qa",
+    "target": "oss-zod",
+    "prompt": "List every module imported by src/__tests__/async-refinements.test.ts, as the import specifier string exactly as written, one per line. Answer only with the list.",
+    "grader": {
+      "kind": "set",
+      "key": [
+        "../index",
+        "@jest/globals"
+      ]
+    },
+    "timeoutSec": 300,
+    "tags": [
+      "generated:v1",
+      "medium",
+      "ts"
+    ]
+  },
+  {
+    "id": "gen-arch-oss-zod-src___tests___base_test_ts-2c827068",
+    "category": "architecture",
+    "style": "qa",
+    "target": "oss-zod",
+    "prompt": "List every module imported by src/__tests__/base.test.ts, as the import specifier string exactly as written, one per line. Answer only with the list.",
+    "grader": {
+      "kind": "set",
+      "key": [
+        "../helpers/util",
+        "../index",
+        "@jest/globals"
+      ]
+    },
+    "timeoutSec": 300,
+    "tags": [
+      "generated:v1",
+      "medium",
+      "ts"
+    ]
+  },
+  {
+    "id": "gen-arch-oss-zod-src___tests___bigint_test_ts-d9fefc00",
+    "category": "architecture",
+    "style": "qa",
+    "target": "oss-zod",
+    "prompt": "List every module imported by src/__tests__/bigint.test.ts, as the import specifier string exactly as written, one per line. Answer only with the list.",
+    "grader": {
+      "kind": "set",
+      "key": [
+        "../index",
+        "@jest/globals"
+      ]
+    },
+    "timeoutSec": 300,
+    "tags": [
+      "generated:v1",
+      "medium",
+      "ts"
+    ]
+  },
+  {
+    "id": "gen-arch-oss-zod-src___tests___branded_test_ts-e3790a00",
+    "category": "architecture",
+    "style": "qa",
+    "target": "oss-zod",
+    "prompt": "List every module imported by src/__tests__/branded.test.ts, as the import specifier string exactly as written, one per line. Answer only with the list.",
+    "grader": {
+      "kind": "set",
+      "key": [
+        "../helpers/util",
+        "../index",
+        "@jest/globals"
+      ]
+    },
+    "timeoutSec": 300,
+    "tags": [
+      "generated:v1",
+      "medium",
+      "ts"
+    ]
+  },
+  {
+    "id": "gen-arch-oss-zod-src___tests___catch_test_ts-3717b205",
+    "category": "architecture",
+    "style": "qa",
+    "target": "oss-zod",
+    "prompt": "List every module imported by src/__tests__/catch.test.ts, as the import specifier string exactly as written, one per line. Answer only with the list.",
+    "grader": {
+      "kind": "set",
+      "key": [
+        "..",
+        "../helpers/util",
+        "@jest/globals"
+      ]
+    },
+    "timeoutSec": 300,
+    "tags": [
+      "generated:v1",
+      "medium",
+      "ts"
+    ]
+  },
+  {
+    "id": "gen-arch-oss-zod-src___tests___coerce_test_ts-5e1abbd2",
+    "category": "architecture",
+    "style": "qa",
+    "target": "oss-zod",
+    "prompt": "List every module imported by src/__tests__/coerce.test.ts, as the import specifier string exactly as written, one per line. Answer only with the list.",
+    "grader": {
+      "kind": "set",
+      "key": [
+        "../index",
+        "@jest/globals"
+      ]
+    },
+    "timeoutSec": 300,
+    "tags": [
+      "generated:v1",
+      "medium",
+      "ts"
+    ]
+  },
+  {
+    "id": "gen-arch-oss-zod-src___tests___complex_test_ts-e3004fd9",
+    "category": "architecture",
+    "style": "qa",
+    "target": "oss-zod",
+    "prompt": "List every module imported by src/__tests__/complex.test.ts, as the import specifier string exactly as written, one per line. Answer only with the list.",
+    "grader": {
+      "kind": "set",
+      "key": [
+        "./crazySchema",
+        "@jest/globals"
+      ]
+    },
+    "timeoutSec": 300,
+    "tags": [
+      "generated:v1",
+      "medium",
+      "ts"
+    ]
+  },
+  {
+    "id": "gen-arch-oss-zod-src___tests___crazySchema_ts-3d0a57be",
+    "category": "architecture",
+    "style": "qa",
+    "target": "oss-zod",
+    "prompt": "List every module imported by src/__tests__/crazySchema.ts, as the import specifier string exactly as written, one per line. Answer only with the list.",
+    "grader": {
+      "kind": "set",
+      "key": [
+        "../index"
+      ]
+    },
+    "timeoutSec": 300,
+    "tags": [
+      "generated:v1",
+      "medium",
+      "ts"
+    ]
+  },
+  {
+    "id": "gen-arch-oss-zod-src___tests___custom_test_ts-2ca98ad8",
+    "category": "architecture",
+    "style": "qa",
+    "target": "oss-zod",
+    "prompt": "List every module imported by src/__tests__/custom.test.ts, as the import specifier string exactly as written, one per line. Answer only with the list.",
+    "grader": {
+      "kind": "set",
+      "key": [
+        "../index",
+        "@jest/globals"
+      ]
+    },
+    "timeoutSec": 300,
+    "tags": [
+      "generated:v1",
+      "medium",
+      "ts"
+    ]
+  },
+  {
+    "id": "gen-arch-oss-zod-src___tests___date_test_ts-ecd0200a",
+    "category": "architecture",
+    "style": "qa",
+    "target": "oss-zod",
+    "prompt": "List every module imported by src/__tests__/date.test.ts, as the import specifier string exactly as written, one per line. Answer only with the list.",
+    "grader": {
+      "kind": "set",
+      "key": [
+        "../index",
+        "@jest/globals"
+      ]
+    },
+    "timeoutSec": 300,
+    "tags": [
+      "generated:v1",
+      "medium",
+      "ts"
+    ]
+  },
+  {
+    "id": "gen-arch-oss-zod-src___tests___deepmasking_test_ts-3f1bf3c1",
+    "category": "architecture",
+    "style": "qa",
+    "target": "oss-zod",
+    "prompt": "List every module imported by src/__tests__/deepmasking.test.ts, as the import specifier string exactly as written, one per line. Answer only with the list.",
+    "grader": {
+      "kind": "set",
+      "key": [
+        "../index",
+        "@jest/globals"
+      ]
+    },
+    "timeoutSec": 300,
+    "tags": [
+      "generated:v1",
+      "medium",
+      "ts"
+    ]
+  },
+  {
+    "id": "gen-arch-oss-zod-src___tests___default_test_ts-8c33cdb7",
+    "category": "architecture",
+    "style": "qa",
+    "target": "oss-zod",
+    "prompt": "List every module imported by src/__tests__/default.test.ts, as the import specifier string exactly as written, one per line. Answer only with the list.",
+    "grader": {
+      "kind": "set",
+      "key": [
+        "..",
+        "../helpers/util",
+        "@jest/globals"
+      ]
+    },
+    "timeoutSec": 300,
+    "tags": [
+      "generated:v1",
+      "medium",
+      "ts"
+    ]
+  },
+  {
+    "id": "gen-arch-oss-zod-src___tests___description_test_ts-1bc6ed4a",
+    "category": "architecture",
+    "style": "qa",
+    "target": "oss-zod",
+    "prompt": "List every module imported by src/__tests__/description.test.ts, as the import specifier string exactly as written, one per line. Answer only with the list.",
+    "grader": {
+      "kind": "set",
+      "key": [
+        "../index",
+        "@jest/globals"
+      ]
+    },
+    "timeoutSec": 300,
+    "tags": [
+      "generated:v1",
+      "medium",
+      "ts"
+    ]
+  },
+  {
+    "id": "gen-arch-oss-zod-src___tests___discriminated_unions_test_ts-81516cf1",
+    "category": "architecture",
+    "style": "qa",
+    "target": "oss-zod",
+    "prompt": "List every module imported by src/__tests__/discriminated-unions.test.ts, as the import specifier string exactly as written, one per line. Answer only with the list.",
+    "grader": {
+      "kind": "set",
+      "key": [
+        "../index",
+        "@jest/globals"
+      ]
+    },
+    "timeoutSec": 300,
+    "tags": [
+      "generated:v1",
+      "medium",
+      "ts"
+    ]
+  },
+  {
+    "id": "gen-arch-oss-zod-src___tests___enum_test_ts-e913a6bc",
+    "category": "architecture",
+    "style": "qa",
+    "target": "oss-zod",
+    "prompt": "List every module imported by src/__tests__/enum.test.ts, as the import specifier string exactly as written, one per line. Answer only with the list.",
+    "grader": {
+      "kind": "set",
+      "key": [
+        "../helpers/util",
+        "../index",
+        "@jest/globals"
+      ]
+    },
+    "timeoutSec": 300,
+    "tags": [
+      "generated:v1",
+      "medium",
+      "ts"
+    ]
+  },
+  {
+    "id": "gen-arch-oss-zod-src___tests___error_test_ts-0e8df3e7",
+    "category": "architecture",
+    "style": "qa",
+    "target": "oss-zod",
+    "prompt": "List every module imported by src/__tests__/error.test.ts, as the import specifier string exactly as written, one per line. Answer only with the list.",
+    "grader": {
+      "kind": "set",
+      "key": [
+        "../ZodError",
+        "../helpers/util",
+        "../index",
+        "@jest/globals"
+      ]
+    },
+    "timeoutSec": 300,
+    "tags": [
+      "generated:v1",
+      "medium",
+      "ts"
+    ]
+  },
+  {
+    "id": "gen-arch-oss-zod-src___tests___firstparty_test_ts-11463091",
+    "category": "architecture",
+    "style": "qa",
+    "target": "oss-zod",
+    "prompt": "List every module imported by src/__tests__/firstparty.test.ts, as the import specifier string exactly as written, one per line. Answer only with the list.",
+    "grader": {
+      "kind": "set",
+      "key": [
+        "../helpers/util",
+        "../index",
+        "@jest/globals"
+      ]
+    },
+    "timeoutSec": 300,
+    "tags": [
+      "generated:v1",
+      "medium",
+      "ts"
+    ]
+  },
+  {
+    "id": "gen-arch-oss-zod-src___tests___firstpartyschematypes_test_ts-072ba00b",
+    "category": "architecture",
+    "style": "qa",
+    "target": "oss-zod",
+    "prompt": "List every module imported by src/__tests__/firstpartyschematypes.test.ts, as the import specifier string exactly as written, one per line. Answer only with the list.",
+    "grader": {
+      "kind": "set",
+      "key": [
+        "..",
+        "../helpers/util",
+        "@jest/globals"
+      ]
+    },
+    "timeoutSec": 300,
+    "tags": [
+      "generated:v1",
+      "medium",
+      "ts"
+    ]
+  },
+  {
+    "id": "gen-arch-oss-zod-src___tests___function_test_ts-c86b7b6b",
+    "category": "architecture",
+    "style": "qa",
+    "target": "oss-zod",
+    "prompt": "List every module imported by src/__tests__/function.test.ts, as the import specifier string exactly as written, one per line. Answer only with the list.",
+    "grader": {
+      "kind": "set",
+      "key": [
+        "../helpers/util",
+        "../index",
+        "@jest/globals"
+      ]
+    },
+    "timeoutSec": 300,
+    "tags": [
+      "generated:v1",
+      "medium",
+      "ts"
+    ]
+  },
+  {
+    "id": "gen-arch-oss-zod-src___tests___generics_test_ts-6bea06af",
+    "category": "architecture",
+    "style": "qa",
+    "target": "oss-zod",
+    "prompt": "List every module imported by src/__tests__/generics.test.ts, as the import specifier string exactly as written, one per line. Answer only with the list.",
+    "grader": {
+      "kind": "set",
+      "key": [
+        "../helpers/util",
+        "../index",
+        "@jest/globals"
+      ]
+    },
+    "timeoutSec": 300,
+    "tags": [
+      "generated:v1",
+      "medium",
+      "ts"
+    ]
+  },
+  {
+    "id": "gen-arch-oss-zod-src___tests___instanceof_test_ts-f13ecdd5",
+    "category": "architecture",
+    "style": "qa",
+    "target": "oss-zod",
+    "prompt": "List every module imported by src/__tests__/instanceof.test.ts, as the import specifier string exactly as written, one per line. Answer only with the list.",
+    "grader": {
+      "kind": "set",
+      "key": [
+        "../helpers/util",
+        "../index",
+        "@jest/globals"
+      ]
+    },
+    "timeoutSec": 300,
+    "tags": [
+      "generated:v1",
+      "medium",
+      "ts"
+    ]
+  },
+  {
+    "id": "gen-arch-oss-zod-src___tests___intersection_test_ts-4f5bed4c",
+    "category": "architecture",
+    "style": "qa",
+    "target": "oss-zod",
+    "prompt": "List every module imported by src/__tests__/intersection.test.ts, as the import specifier string exactly as written, one per line. Answer only with the list.",
+    "grader": {
+      "kind": "set",
+      "key": [
+        "../index",
+        "@jest/globals"
+      ]
+    },
+    "timeoutSec": 300,
+    "tags": [
+      "generated:v1",
+      "medium",
+      "ts"
+    ]
+  },
+  {
+    "id": "gen-arch-oss-zod-src___tests___language_server_source_ts-67e98e90",
+    "category": "architecture",
+    "style": "qa",
+    "target": "oss-zod",
+    "prompt": "List every module imported by src/__tests__/language-server.source.ts, as the import specifier string exactly as written, one per line. Answer only with the list.",
+    "grader": {
+      "kind": "set",
+      "key": [
+        "../index"
+      ]
+    },
+    "timeoutSec": 300,
+    "tags": [
+      "generated:v1",
+      "medium",
+      "ts"
+    ]
+  },
+  {
+    "id": "gen-arch-oss-zod-src___tests___language_server_test_ts-c17843a0",
+    "category": "architecture",
+    "style": "qa",
+    "target": "oss-zod",
+    "prompt": "List every module imported by src/__tests__/language-server.test.ts, as the import specifier string exactly as written, one per line. Answer only with the list.",
+    "grader": {
+      "kind": "set",
+      "key": [
+        "@jest/globals"
+      ]
+    },
+    "timeoutSec": 300,
+    "tags": [
+      "generated:v1",
+      "medium",
+      "ts"
+    ]
+  },
+  {
+    "id": "gen-arch-oss-zod-src___tests___literal_test_ts-45fbfcaa",
+    "category": "architecture",
+    "style": "qa",
+    "target": "oss-zod",
+    "prompt": "List every module imported by src/__tests__/literal.test.ts, as the import specifier string exactly as written, one per line. Answer only with the list.",
+    "grader": {
+      "kind": "set",
+      "key": [
+        "../index",
+        "@jest/globals"
+      ]
+    },
+    "timeoutSec": 300,
+    "tags": [
+      "generated:v1",
+      "medium",
+      "ts"
+    ]
+  },
+  {
+    "id": "gen-arch-oss-zod-src___tests___map_test_ts-043f73f8",
+    "category": "architecture",
+    "style": "qa",
+    "target": "oss-zod",
+    "prompt": "List every module imported by src/__tests__/map.test.ts, as the import specifier string exactly as written, one per line. Answer only with the list.",
+    "grader": {
+      "kind": "set",
+      "key": [
+        "../helpers/util",
+        "../index",
+        "@jest/globals"
+      ]
+    },
+    "timeoutSec": 300,
+    "tags": [
+      "generated:v1",
+      "medium",
+      "ts"
+    ]
+  },
+  {
+    "id": "gen-arch-oss-zod-src___tests___masking_test_ts-f974a8fe",
+    "category": "architecture",
+    "style": "qa",
+    "target": "oss-zod",
+    "prompt": "List every module imported by src/__tests__/masking.test.ts, as the import specifier string exactly as written, one per line. Answer only with the list.",
+    "grader": {
+      "kind": "set",
+      "key": [
+        "../index",
+        "@jest/globals"
+      ]
+    },
+    "timeoutSec": 300,
+    "tags": [
+      "generated:v1",
+      "medium",
+      "ts"
+    ]
+  },
+  {
+    "id": "gen-arch-oss-zod-src___tests___mocker_test_ts-82850669",
+    "category": "architecture",
+    "style": "qa",
+    "target": "oss-zod",
+    "prompt": "List every module imported by src/__tests__/mocker.test.ts, as the import specifier string exactly as written, one per line. Answer only with the list.",
+    "grader": {
+      "kind": "set",
+      "key": [
+        "./Mocker",
+        "@jest/globals"
+      ]
+    },
+    "timeoutSec": 300,
+    "tags": [
+      "generated:v1",
+      "medium",
+      "ts"
+    ]
+  },
+  {
+    "id": "gen-arch-oss-zod-src___tests___nan_test_ts-425cc2ac",
+    "category": "architecture",
+    "style": "qa",
+    "target": "oss-zod",
+    "prompt": "List every module imported by src/__tests__/nan.test.ts, as the import specifier string exactly as written, one per line. Answer only with the list.",
+    "grader": {
+      "kind": "set",
+      "key": [
+        "../index",
+        "@jest/globals"
+      ]
+    },
+    "timeoutSec": 300,
+    "tags": [
+      "generated:v1",
+      "medium",
+      "ts"
+    ]
+  },
+  {
+    "id": "gen-arch-oss-zod-src___tests___nativeEnum_test_ts-670893ca",
+    "category": "architecture",
+    "style": "qa",
+    "target": "oss-zod",
+    "prompt": "List every module imported by src/__tests__/nativeEnum.test.ts, as the import specifier string exactly as written, one per line. Answer only with the list.",
+    "grader": {
+      "kind": "set",
+      "key": [
+        "../helpers/util",
+        "../index",
+        "@jest/globals"
+      ]
+    },
+    "timeoutSec": 300,
+    "tags": [
+      "generated:v1",
+      "medium",
+      "ts"
+    ]
+  },
+  {
+    "id": "gen-arch-oss-zod-src___tests___nullable_test_ts-6a550275",
+    "category": "architecture",
+    "style": "qa",
+    "target": "oss-zod",
+    "prompt": "List every module imported by src/__tests__/nullable.test.ts, as the import specifier string exactly as written, one per line. Answer only with the list.",
+    "grader": {
+      "kind": "set",
+      "key": [
+        "../index",
+        "@jest/globals"
+      ]
+    },
+    "timeoutSec": 300,
+    "tags": [
+      "generated:v1",
+      "medium",
+      "ts"
+    ]
+  },
+  {
+    "id": "gen-arch-oss-zod-src___tests___number_test_ts-8efc3436",
+    "category": "architecture",
+    "style": "qa",
+    "target": "oss-zod",
+    "prompt": "List every module imported by src/__tests__/number.test.ts, as the import specifier string exactly as written, one per line. Answer only with the list.",
+    "grader": {
+      "kind": "set",
+      "key": [
+        "../index",
+        "@jest/globals"
+      ]
+    },
+    "timeoutSec": 300,
+    "tags": [
+      "generated:v1",
+      "medium",
+      "ts"
+    ]
+  },
+  {
+    "id": "gen-arch-oss-zod-src___tests___object_augmentation_test_ts-da4ac9c2",
+    "category": "architecture",
+    "style": "qa",
+    "target": "oss-zod",
+    "prompt": "List every module imported by src/__tests__/object-augmentation.test.ts, as the import specifier string exactly as written, one per line. Answer only with the list.",
+    "grader": {
+      "kind": "set",
+      "key": [
+        "../index",
+        "@jest/globals"
+      ]
+    },
+    "timeoutSec": 300,
+    "tags": [
+      "generated:v1",
+      "medium",
+      "ts"
+    ]
+  },
+  {
+    "id": "gen-arch-oss-zod-src___tests___object_in_es5_env_test_ts-7fa3a774",
+    "category": "architecture",
+    "style": "qa",
+    "target": "oss-zod",
+    "prompt": "List every module imported by src/__tests__/object-in-es5-env.test.ts, as the import specifier string exactly as written, one per line. Answer only with the list.",
+    "grader": {
+      "kind": "set",
+      "key": [
+        "../index",
+        "@jest/globals"
+      ]
+    },
+    "timeoutSec": 300,
+    "tags": [
+      "generated:v1",
+      "medium",
+      "ts"
+    ]
+  },
+  {
+    "id": "gen-arch-oss-zod-src___tests___object_test_ts-77053262",
+    "category": "architecture",
+    "style": "qa",
+    "target": "oss-zod",
+    "prompt": "List every module imported by src/__tests__/object.test.ts, as the import specifier string exactly as written, one per line. Answer only with the list.",
+    "grader": {
+      "kind": "set",
+      "key": [
+        "../helpers/util",
+        "../index",
+        "@jest/globals"
+      ]
+    },
+    "timeoutSec": 300,
+    "tags": [
+      "generated:v1",
+      "medium",
+      "ts"
+    ]
+  },
+  {
+    "id": "gen-arch-oss-zod-src___tests___optional_test_ts-389aff08",
+    "category": "architecture",
+    "style": "qa",
+    "target": "oss-zod",
+    "prompt": "List every module imported by src/__tests__/optional.test.ts, as the import specifier string exactly as written, one per line. Answer only with the list.",
+    "grader": {
+      "kind": "set",
+      "key": [
+        "../index",
+        "@jest/globals"
+      ]
+    },
+    "timeoutSec": 300,
+    "tags": [
+      "generated:v1",
+      "medium",
+      "ts"
+    ]
+  },
+  {
+    "id": "gen-arch-oss-zod-src___tests___parseUtil_test_ts-ec6290f5",
+    "category": "architecture",
+    "style": "qa",
+    "target": "oss-zod",
+    "prompt": "List every module imported by src/__tests__/parseUtil.test.ts, as the import specifier string exactly as written, one per line. Answer only with the list.",
+    "grader": {
+      "kind": "set",
+      "key": [
+        "../helpers/parseUtil",
+        "@jest/globals"
+      ]
+    },
+    "timeoutSec": 300,
+    "tags": [
+      "generated:v1",
+      "medium",
+      "ts"
+    ]
+  },
+  {
+    "id": "gen-arch-oss-zod-src___tests___parser_test_ts-7d54ce85",
+    "category": "architecture",
+    "style": "qa",
+    "target": "oss-zod",
+    "prompt": "List every module imported by src/__tests__/parser.test.ts, as the import specifier string exactly as written, one per line. Answer only with the list.",
+    "grader": {
+      "kind": "set",
+      "key": [
+        "../index",
+        "@jest/globals"
+      ]
+    },
+    "timeoutSec": 300,
+    "tags": [
+      "generated:v1",
+      "medium",
+      "ts"
+    ]
+  },
+  {
+    "id": "gen-arch-oss-zod-src___tests___partials_test_ts-3b71bd6a",
+    "category": "architecture",
+    "style": "qa",
+    "target": "oss-zod",
+    "prompt": "List every module imported by src/__tests__/partials.test.ts, as the import specifier string exactly as written, one per line. Answer only with the list.",
+    "grader": {
+      "kind": "set",
+      "key": [
+        "../helpers/util",
+        "../index",
+        "@jest/globals"
+      ]
+    },
+    "timeoutSec": 300,
+    "tags": [
+      "generated:v1",
+      "medium",
+      "ts"
+    ]
+  },
+  {
+    "id": "gen-arch-oss-zod-src___tests___pickomit_test_ts-57f4bebf",
+    "category": "architecture",
+    "style": "qa",
+    "target": "oss-zod",
+    "prompt": "List every module imported by src/__tests__/pickomit.test.ts, as the import specifier string exactly as written, one per line. Answer only with the list.",
+    "grader": {
+      "kind": "set",
+      "key": [
+        "../helpers/util",
+        "../index",
+        "@jest/globals"
+      ]
+    },
+    "timeoutSec": 300,
+    "tags": [
+      "generated:v1",
+      "medium",
+      "ts"
+    ]
+  },
+  {
+    "id": "gen-arch-oss-zod-src___tests___pipeline_test_ts-11f65e45",
+    "category": "architecture",
+    "style": "qa",
+    "target": "oss-zod",
+    "prompt": "List every module imported by src/__tests__/pipeline.test.ts, as the import specifier string exactly as written, one per line. Answer only with the list.",
+    "grader": {
+      "kind": "set",
+      "key": [
+        "../index",
+        "@jest/globals"
+      ]
+    },
+    "timeoutSec": 300,
+    "tags": [
+      "generated:v1",
+      "medium",
+      "ts"
+    ]
+  },
+  {
+    "id": "gen-arch-oss-zod-src___tests___preprocess_test_ts-50b20559",
+    "category": "architecture",
+    "style": "qa",
+    "target": "oss-zod",
+    "prompt": "List every module imported by src/__tests__/preprocess.test.ts, as the import specifier string exactly as written, one per line. Answer only with the list.",
+    "grader": {
+      "kind": "set",
+      "key": [
+        "../helpers/util",
+        "../index",
+        "@jest/globals"
+      ]
+    },
+    "timeoutSec": 300,
+    "tags": [
+      "generated:v1",
+      "medium",
+      "ts"
+    ]
+  },
+  {
+    "id": "gen-arch-oss-zod-src___tests___primitive_test_ts-cd63af48",
+    "category": "architecture",
+    "style": "qa",
+    "target": "oss-zod",
+    "prompt": "List every module imported by src/__tests__/primitive.test.ts, as the import specifier string exactly as written, one per line. Answer only with the list.",
+    "grader": {
+      "kind": "set",
+      "key": [
+        "../helpers/util",
+        "../index",
+        "./Mocker",
+        "@jest/globals"
+      ]
+    },
+    "timeoutSec": 300,
+    "tags": [
+      "generated:v1",
+      "medium",
+      "ts"
+    ]
+  },
+  {
+    "id": "gen-arch-oss-zod-src___tests___promise_test_ts-27162e4d",
+    "category": "architecture",
+    "style": "qa",
+    "target": "oss-zod",
+    "prompt": "List every module imported by src/__tests__/promise.test.ts, as the import specifier string exactly as written, one per line. Answer only with the list.",
+    "grader": {
+      "kind": "set",
+      "key": [
+        "../helpers/util",
+        "../index",
+        "@jest/globals"
+      ]
+    },
+    "timeoutSec": 300,
+    "tags": [
+      "generated:v1",
+      "medium",
+      "ts"
+    ]
+  },
+  {
+    "id": "gen-arch-oss-zod-src___tests___readonly_test_ts-60d77da7",
+    "category": "architecture",
+    "style": "qa",
+    "target": "oss-zod",
+    "prompt": "List every module imported by src/__tests__/readonly.test.ts, as the import specifier string exactly as written, one per line. Answer only with the list.",
+    "grader": {
+      "kind": "set",
+      "key": [
+        "../helpers/util",
+        "../index",
+        "@jest/globals"
+      ]
+    },
+    "timeoutSec": 300,
+    "tags": [
+      "generated:v1",
+      "medium",
+      "ts"
+    ]
+  },
+  {
+    "id": "gen-arch-oss-zod-src___tests___record_test_ts-3db60d6b",
+    "category": "architecture",
+    "style": "qa",
+    "target": "oss-zod",
+    "prompt": "List every module imported by src/__tests__/record.test.ts, as the import specifier string exactly as written, one per line. Answer only with the list.",
+    "grader": {
+      "kind": "set",
+      "key": [
+        "../helpers/util",
+        "../index",
+        "@jest/globals"
+      ]
+    },
+    "timeoutSec": 300,
+    "tags": [
+      "generated:v1",
+      "medium",
+      "ts"
+    ]
+  },
+  {
+    "id": "gen-arch-oss-zod-src___tests___recursive_test_ts-e983e895",
+    "category": "architecture",
+    "style": "qa",
+    "target": "oss-zod",
+    "prompt": "List every module imported by src/__tests__/recursive.test.ts, as the import specifier string exactly as written, one per line. Answer only with the list.",
+    "grader": {
+      "kind": "set",
+      "key": [
+        "..",
+        "@jest/globals"
+      ]
+    },
+    "timeoutSec": 300,
+    "tags": [
+      "generated:v1",
+      "medium",
+      "ts"
+    ]
+  },
+  {
+    "id": "gen-arch-oss-zod-src___tests___refine_test_ts-31c3c35c",
+    "category": "architecture",
+    "style": "qa",
+    "target": "oss-zod",
+    "prompt": "List every module imported by src/__tests__/refine.test.ts, as the import specifier string exactly as written, one per line. Answer only with the list.",
+    "grader": {
+      "kind": "set",
+      "key": [
+        "../ZodError",
+        "../helpers/util",
+        "../index",
+        "@jest/globals"
+      ]
+    },
+    "timeoutSec": 300,
+    "tags": [
+      "generated:v1",
+      "medium",
+      "ts"
+    ]
+  },
+  {
+    "id": "gen-arch-oss-zod-src___tests___safeparse_test_ts-1fd5ff0d",
+    "category": "architecture",
+    "style": "qa",
+    "target": "oss-zod",
+    "prompt": "List every module imported by src/__tests__/safeparse.test.ts, as the import specifier string exactly as written, one per line. Answer only with the list.",
+    "grader": {
+      "kind": "set",
+      "key": [
+        "../index",
+        "@jest/globals"
+      ]
+    },
+    "timeoutSec": 300,
+    "tags": [
+      "generated:v1",
+      "medium",
+      "ts"
+    ]
+  },
+  {
+    "id": "gen-arch-oss-zod-src___tests___set_test_ts-d756ba8f",
+    "category": "architecture",
+    "style": "qa",
+    "target": "oss-zod",
+    "prompt": "List every module imported by src/__tests__/set.test.ts, as the import specifier string exactly as written, one per line. Answer only with the list.",
+    "grader": {
+      "kind": "set",
+      "key": [
+        "../helpers/util",
+        "../index",
+        "@jest/globals"
+      ]
+    },
+    "timeoutSec": 300,
+    "tags": [
+      "generated:v1",
+      "medium",
+      "ts"
+    ]
+  },
+  {
+    "id": "gen-arch-oss-zod-src___tests___string_test_ts-6cef08bf",
+    "category": "architecture",
+    "style": "qa",
+    "target": "oss-zod",
+    "prompt": "List every module imported by src/__tests__/string.test.ts, as the import specifier string exactly as written, one per line. Answer only with the list.",
+    "grader": {
+      "kind": "set",
+      "key": [
+        "../index",
+        "@jest/globals"
+      ]
+    },
+    "timeoutSec": 300,
+    "tags": [
+      "generated:v1",
+      "medium",
+      "ts"
+    ]
+  },
+  {
+    "id": "gen-arch-oss-zod-src___tests___transformer_test_ts-2f392929",
+    "category": "architecture",
+    "style": "qa",
+    "target": "oss-zod",
+    "prompt": "List every module imported by src/__tests__/transformer.test.ts, as the import specifier string exactly as written, one per line. Answer only with the list.",
+    "grader": {
+      "kind": "set",
+      "key": [
+        "../helpers/util",
+        "../index",
+        "@jest/globals"
+      ]
+    },
+    "timeoutSec": 300,
+    "tags": [
+      "generated:v1",
+      "medium",
+      "ts"
+    ]
+  },
+  {
+    "id": "gen-arch-oss-zod-src___tests___tuple_test_ts-cb6a7920",
+    "category": "architecture",
+    "style": "qa",
+    "target": "oss-zod",
+    "prompt": "List every module imported by src/__tests__/tuple.test.ts, as the import specifier string exactly as written, one per line. Answer only with the list.",
+    "grader": {
+      "kind": "set",
+      "key": [
+        "../ZodError",
+        "../helpers/util",
+        "../index",
+        "@jest/globals"
+      ]
+    },
+    "timeoutSec": 300,
+    "tags": [
+      "generated:v1",
+      "medium",
+      "ts"
+    ]
+  },
+  {
+    "id": "gen-arch-oss-zod-src___tests___unions_test_ts-35f95ce8",
+    "category": "architecture",
+    "style": "qa",
+    "target": "oss-zod",
+    "prompt": "List every module imported by src/__tests__/unions.test.ts, as the import specifier string exactly as written, one per line. Answer only with the list.",
+    "grader": {
+      "kind": "set",
+      "key": [
+        "../index",
+        "@jest/globals"
+      ]
+    },
+    "timeoutSec": 300,
+    "tags": [
+      "generated:v1",
+      "medium",
+      "ts"
+    ]
+  },
+  {
+    "id": "gen-arch-oss-zod-src___tests___validations_test_ts-70be171e",
+    "category": "architecture",
+    "style": "qa",
+    "target": "oss-zod",
+    "prompt": "List every module imported by src/__tests__/validations.test.ts, as the import specifier string exactly as written, one per line. Answer only with the list.",
+    "grader": {
+      "kind": "set",
+      "key": [
+        "../index",
+        "@jest/globals"
+      ]
+    },
+    "timeoutSec": 300,
+    "tags": [
+      "generated:v1",
+      "medium",
+      "ts"
+    ]
+  },
+  {
+    "id": "gen-arch-oss-zod-src___tests___void_test_ts-d0da668a",
+    "category": "architecture",
+    "style": "qa",
+    "target": "oss-zod",
+    "prompt": "List every module imported by src/__tests__/void.test.ts, as the import specifier string exactly as written, one per line. Answer only with the list.",
+    "grader": {
+      "kind": "set",
+      "key": [
+        "../helpers/util",
+        "../index",
+        "@jest/globals"
+      ]
+    },
+    "timeoutSec": 300,
+    "tags": [
+      "generated:v1",
+      "medium",
+      "ts"
+    ]
+  },
+  {
+    "id": "gen-arch-oss-zod-src_benchmarks_datetime_ts-06c12ff6",
+    "category": "architecture",
+    "style": "qa",
+    "target": "oss-zod",
+    "prompt": "List every module imported by src/benchmarks/datetime.ts, as the import specifier string exactly as written, one per line. Answer only with the list.",
+    "grader": {
+      "kind": "set",
+      "key": [
+        "benchmark"
+      ]
+    },
+    "timeoutSec": 300,
+    "tags": [
+      "generated:v1",
+      "medium",
+      "ts"
+    ]
+  },
+  {
+    "id": "gen-arch-oss-zod-src_benchmarks_discriminatedUnion_ts-03575e9f",
+    "category": "architecture",
+    "style": "qa",
+    "target": "oss-zod",
+    "prompt": "List every module imported by src/benchmarks/discriminatedUnion.ts, as the import specifier string exactly as written, one per line. Answer only with the list.",
+    "grader": {
+      "kind": "set",
+      "key": [
+        "../index",
+        "benchmark"
+      ]
+    },
+    "timeoutSec": 300,
+    "tags": [
+      "generated:v1",
+      "medium",
+      "ts"
+    ]
+  },
+  {
+    "id": "gen-arch-oss-zod-src_benchmarks_index_ts-c3b089dd",
+    "category": "architecture",
+    "style": "qa",
+    "target": "oss-zod",
+    "prompt": "List every module imported by src/benchmarks/index.ts, as the import specifier string exactly as written, one per line. Answer only with the list.",
+    "grader": {
+      "kind": "set",
+      "key": [
+        "./datetime",
+        "./discriminatedUnion",
+        "./ipv4",
+        "./object",
+        "./primitives",
+        "./realworld",
+        "./string",
+        "./union",
+        "benchmark"
+      ]
+    },
+    "timeoutSec": 300,
+    "tags": [
+      "generated:v1",
+      "medium",
+      "ts"
+    ]
+  },
+  {
+    "id": "gen-arch-oss-zod-src_benchmarks_ipv4_ts-d777981d",
+    "category": "architecture",
+    "style": "qa",
+    "target": "oss-zod",
+    "prompt": "List every module imported by src/benchmarks/ipv4.ts, as the import specifier string exactly as written, one per line. Answer only with the list.",
+    "grader": {
+      "kind": "set",
+      "key": [
+        "benchmark"
+      ]
+    },
+    "timeoutSec": 300,
+    "tags": [
+      "generated:v1",
+      "medium",
+      "ts"
+    ]
+  },
+  {
+    "id": "gen-arch-oss-zod-src_benchmarks_object_ts-a04a6df4",
+    "category": "architecture",
+    "style": "qa",
+    "target": "oss-zod",
+    "prompt": "List every module imported by src/benchmarks/object.ts, as the import specifier string exactly as written, one per line. Answer only with the list.",
+    "grader": {
+      "kind": "set",
+      "key": [
+        "../index",
+        "benchmark"
+      ]
+    },
+    "timeoutSec": 300,
+    "tags": [
+      "generated:v1",
+      "medium",
+      "ts"
+    ]
+  },
+  {
+    "id": "gen-arch-oss-zod-src_benchmarks_primitives_ts-a055ecef",
+    "category": "architecture",
+    "style": "qa",
+    "target": "oss-zod",
+    "prompt": "List every module imported by src/benchmarks/primitives.ts, as the import specifier string exactly as written, one per line. Answer only with the list.",
+    "grader": {
+      "kind": "set",
+      "key": [
+        "../__tests__/Mocker",
+        "../index",
+        "benchmark"
+      ]
+    },
+    "timeoutSec": 300,
+    "tags": [
+      "generated:v1",
+      "medium",
+      "ts"
+    ]
+  },
+  {
+    "id": "gen-arch-oss-zod-src_benchmarks_realworld_ts-6df894c9",
+    "category": "architecture",
+    "style": "qa",
+    "target": "oss-zod",
+    "prompt": "List every module imported by src/benchmarks/realworld.ts, as the import specifier string exactly as written, one per line. Answer only with the list.",
+    "grader": {
+      "kind": "set",
+      "key": [
+        "../index",
+        "benchmark"
+      ]
+    },
+    "timeoutSec": 300,
+    "tags": [
+      "generated:v1",
+      "medium",
+      "ts"
+    ]
+  },
+  {
+    "id": "gen-arch-oss-zod-src_benchmarks_string_ts-fc64b023",
+    "category": "architecture",
+    "style": "qa",
+    "target": "oss-zod",
+    "prompt": "List every module imported by src/benchmarks/string.ts, as the import specifier string exactly as written, one per line. Answer only with the list.",
+    "grader": {
+      "kind": "set",
+      "key": [
+        "../index",
+        "benchmark"
+      ]
+    },
+    "timeoutSec": 300,
+    "tags": [
+      "generated:v1",
+      "medium",
+      "ts"
+    ]
+  },
+  {
+    "id": "gen-arch-oss-zod-src_benchmarks_union_ts-5b537c2a",
+    "category": "architecture",
+    "style": "qa",
+    "target": "oss-zod",
+    "prompt": "List every module imported by src/benchmarks/union.ts, as the import specifier string exactly as written, one per line. Answer only with the list.",
+    "grader": {
+      "kind": "set",
+      "key": [
+        "../index",
+        "benchmark"
+      ]
+    },
+    "timeoutSec": 300,
+    "tags": [
+      "generated:v1",
+      "medium",
+      "ts"
+    ]
+  },
+  {
+    "id": "gen-arch-oss-zod-src_errors_ts-69d4c465",
+    "category": "architecture",
+    "style": "qa",
+    "target": "oss-zod",
+    "prompt": "List every module imported by src/errors.ts, as the import specifier string exactly as written, one per line. Answer only with the list.",
+    "grader": {
+      "kind": "set",
+      "key": [
+        "./ZodError",
+        "./locales/en"
+      ]
+    },
+    "timeoutSec": 300,
+    "tags": [
+      "generated:v1",
+      "medium",
+      "ts"
+    ]
+  },
+  {
+    "id": "gen-arch-oss-zod-src_helpers_parseUtil_ts-e2bb9c30",
+    "category": "architecture",
+    "style": "qa",
+    "target": "oss-zod",
+    "prompt": "List every module imported by src/helpers/parseUtil.ts, as the import specifier string exactly as written, one per line. Answer only with the list.",
+    "grader": {
+      "kind": "set",
+      "key": [
+        "../ZodError",
+        "../errors",
+        "../locales/en",
+        "./util"
+      ]
+    },
+    "timeoutSec": 300,
+    "tags": [
+      "generated:v1",
+      "medium",
+      "ts"
+    ]
+  },
+  {
+    "id": "gen-arch-oss-zod-src_helpers_partialUtil_ts-e11a51c6",
+    "category": "architecture",
+    "style": "qa",
+    "target": "oss-zod",
+    "prompt": "List every module imported by src/helpers/partialUtil.ts, as the import specifier string exactly as written, one per line. Answer only with the list.",
+    "grader": {
+      "kind": "set",
+      "key": [
+        "../index"
+      ]
+    },
+    "timeoutSec": 300,
+    "tags": [
+      "generated:v1",
+      "medium",
+      "ts"
+    ]
+  },
+  {
+    "id": "gen-arch-oss-zod-src_index_ts-c5fb8502",
+    "category": "architecture",
+    "style": "qa",
+    "target": "oss-zod",
+    "prompt": "List every module imported by src/index.ts, as the import specifier string exactly as written, one per line. Answer only with the list.",
+    "grader": {
+      "kind": "set",
+      "key": [
+        "./external"
+      ]
+    },
+    "timeoutSec": 300,
+    "tags": [
+      "generated:v1",
+      "medium",
+      "ts"
+    ]
+  },
+  {
+    "id": "gen-arch-oss-zod-src_locales_en_ts-d26e4cbe",
+    "category": "architecture",
+    "style": "qa",
+    "target": "oss-zod",
+    "prompt": "List every module imported by src/locales/en.ts, as the import specifier string exactly as written, one per line. Answer only with the list.",
+    "grader": {
+      "kind": "set",
+      "key": [
+        "../ZodError",
+        "../helpers/util"
+      ]
+    },
+    "timeoutSec": 300,
+    "tags": [
+      "generated:v1",
+      "medium",
+      "ts"
+    ]
+  },
+  {
+    "id": "gen-arch-oss-zod-src_types_ts-cdcae080",
+    "category": "architecture",
+    "style": "qa",
+    "target": "oss-zod",
+    "prompt": "List every module imported by src/types.ts, as the import specifier string exactly as written, one per line. Answer only with the list.",
+    "grader": {
+      "kind": "set",
+      "key": [
+        "./ZodError",
+        "./errors",
+        "./helpers/enumUtil",
+        "./helpers/errorUtil",
+        "./helpers/parseUtil",
+        "./helpers/partialUtil",
+        "./helpers/typeAliases",
+        "./helpers/util"
+      ]
+    },
+    "timeoutSec": 300,
+    "tags": [
+      "generated:v1",
+      "medium",
+      "ts"
+    ]
+  },
+  {
+    "id": "gen-impact-oss-zod-denoLibRoot",
+    "category": "callers-impact",
+    "style": "qa",
+    "target": "oss-zod",
+    "prompt": "If `denoLibRoot` changes, which symbols are transitively affected? List their names, one per line. Answer only with the list.",
+    "grader": {
+      "kind": "set",
+      "key": [
+        "walkAndBuild"
+      ]
+    },
+    "timeoutSec": 300,
+    "tags": [
+      "generated:v1",
+      "medium",
+      "js"
+    ]
+  },
+  {
+    "id": "gen-impact-oss-zod-join",
+    "category": "callers-impact",
+    "style": "qa",
+    "target": "oss-zod",
+    "prompt": "If `join` changes, which symbols are transitively affected? List their names, one per line. Answer only with the list.",
+    "grader": {
+      "kind": "set",
+      "key": [
+        "denoLibRoot",
+        "nodeSrcRoot",
+        "skipList",
+        "walkAndBuild"
+      ]
+    },
+    "timeoutSec": 300,
+    "tags": [
+      "generated:v1",
+      "medium",
+      "js"
+    ]
+  },
+  {
+    "id": "gen-impact-oss-zod-nodeSrcRoot",
+    "category": "callers-impact",
+    "style": "qa",
+    "target": "oss-zod",
+    "prompt": "If `nodeSrcRoot` changes, which symbols are transitively affected? List their names, one per line. Answer only with the list.",
+    "grader": {
+      "kind": "set",
+      "key": [
+        "skipList",
+        "walkAndBuild"
+      ]
+    },
+    "timeoutSec": 300,
+    "tags": [
+      "generated:v1",
+      "medium",
+      "js"
+    ]
+  },
+  {
+    "id": "gen-impact-oss-zod-projectRoot",
+    "category": "callers-impact",
+    "style": "qa",
+    "target": "oss-zod",
+    "prompt": "If `projectRoot` changes, which symbols are transitively affected? List their names, one per line. Answer only with the list.",
+    "grader": {
+      "kind": "set",
+      "key": [
+        "denoLibRoot",
+        "nodeSrcRoot",
+        "skipList",
+        "walkAndBuild"
+      ]
+    },
+    "timeoutSec": 300,
+    "tags": [
+      "generated:v1",
+      "medium",
+      "js"
+    ]
+  },
+  {
+    "id": "gen-symlookup-oss-zod-filePath",
+    "category": "symbol-lookup",
+    "style": "qa",
+    "target": "oss-zod",
+    "prompt": "Where is `filePath` defined? Answer with a single line as path:line.",
+    "grader": {
+      "kind": "path-line-set",
+      "key": [
+        "src/__tests__/language-server.source.ts:3"
+      ]
+    },
+    "timeoutSec": 300,
+    "tags": [
+      "generated:v1",
+      "medium",
+      "ts"
+    ]
+  },
+  {
+    "id": "gen-symlookup-oss-zod-instanceOfTest",
+    "category": "symbol-lookup",
+    "style": "qa",
+    "target": "oss-zod",
+    "prompt": "Where is `instanceOfTest` defined? Answer with a single line as path:line.",
+    "grader": {
+      "kind": "path-line-set",
+      "key": [
+        "src/__tests__/language-server.source.ts:13"
+      ]
+    },
+    "timeoutSec": 300,
+    "tags": [
+      "generated:v1",
+      "medium",
+      "ts"
+    ]
+  },
+  {
+    "id": "gen-symlookup-oss-zod-instanceOfTestMerge",
+    "category": "symbol-lookup",
+    "style": "qa",
+    "target": "oss-zod",
+    "prompt": "Where is `instanceOfTestMerge` defined? Answer with a single line as path:line.",
+    "grader": {
+      "kind": "path-line-set",
+      "key": [
+        "src/__tests__/language-server.source.ts:27"
+      ]
+    },
+    "timeoutSec": 300,
+    "tags": [
+      "generated:v1",
+      "medium",
+      "ts"
+    ]
+  },
+  {
+    "id": "gen-symlookup-oss-zod-instanceOfTestOmit",
+    "category": "symbol-lookup",
+    "style": "qa",
+    "target": "oss-zod",
+    "prompt": "Where is `instanceOfTestOmit` defined? Answer with a single line as path:line.",
+    "grader": {
+      "kind": "path-line-set",
+      "key": [
+        "src/__tests__/language-server.source.ts:74"
+      ]
+    },
+    "timeoutSec": 300,
+    "tags": [
+      "generated:v1",
+      "medium",
+      "ts"
+    ]
+  },
+  {
+    "id": "gen-symlookup-oss-zod-instanceOfTestPartial",
+    "category": "symbol-lookup",
+    "style": "qa",
+    "target": "oss-zod",
+    "prompt": "Where is `instanceOfTestPartial` defined? Answer with a single line as path:line.",
+    "grader": {
+      "kind": "path-line-set",
+      "key": [
+        "src/__tests__/language-server.source.ts:54"
+      ]
+    },
+    "timeoutSec": 300,
+    "tags": [
+      "generated:v1",
+      "medium",
+      "ts"
+    ]
+  },
+  {
+    "id": "gen-symlookup-oss-zod-instanceOfTestPick",
+    "category": "symbol-lookup",
+    "style": "qa",
+    "target": "oss-zod",
+    "prompt": "Where is `instanceOfTestPick` defined? Answer with a single line as path:line.",
+    "grader": {
+      "kind": "path-line-set",
+      "key": [
+        "src/__tests__/language-server.source.ts:64"
+      ]
+    },
+    "timeoutSec": 300,
+    "tags": [
+      "generated:v1",
+      "medium",
+      "ts"
+    ]
+  },
+  {
+    "id": "gen-symlookup-oss-zod-instanceOfTestUnion",
+    "category": "symbol-lookup",
+    "style": "qa",
+    "target": "oss-zod",
+    "prompt": "Where is `instanceOfTestUnion` defined? Answer with a single line as path:line.",
+    "grader": {
+      "kind": "path-line-set",
+      "key": [
+        "src/__tests__/language-server.source.ts:43"
+      ]
+    },
+    "timeoutSec": 300,
+    "tags": [
+      "generated:v1",
+      "medium",
+      "ts"
+    ]
+  },
+  {
+    "id": "gen-whocalls-oss-zod-denoLibRoot",
+    "category": "callers-impact",
+    "style": "qa",
+    "target": "oss-zod",
+    "prompt": "List every call site of `denoLibRoot`, as path:line, one per line. Answer only with the list.",
+    "grader": {
+      "kind": "path-line-set",
+      "key": [
+        "deno-build.mjs:40",
+        "deno-build.mjs:94"
+      ]
+    },
+    "timeoutSec": 300,
+    "tags": [
+      "generated:v1",
+      "medium",
+      "js"
+    ]
+  },
+  {
+    "id": "gen-whocalls-oss-zod-join",
+    "category": "callers-impact",
+    "style": "qa",
+    "target": "oss-zod",
+    "prompt": "List every call site of `join`, as path:line, one per line. Answer only with the list.",
+    "grader": {
+      "kind": "path-line-set",
+      "key": [
+        "deno-build.mjs:20",
+        "deno-build.mjs:23",
+        "deno-build.mjs:24",
+        "deno-build.mjs:27",
+        "deno-build.mjs:28",
+        "deno-build.mjs:29",
+        "deno-build.mjs:32",
+        "deno-build.mjs:37",
+        "deno-build.mjs:39",
+        "deno-build.mjs:40",
+        "deno-build.mjs:56",
+        "deno-build.mjs:58",
+        "deno-build.mjs:72",
+        "deno-build.mjs:94"
+      ]
+    },
+    "timeoutSec": 300,
+    "tags": [
+      "generated:v1",
+      "medium",
+      "js"
+    ]
+  },
+  {
+    "id": "gen-whocalls-oss-zod-nodeSrcRoot",
+    "category": "callers-impact",
+    "style": "qa",
+    "target": "oss-zod",
+    "prompt": "List every call site of `nodeSrcRoot`, as path:line, one per line. Answer only with the list.",
+    "grader": {
+      "kind": "path-line-set",
+      "key": [
+        "deno-build.mjs:27",
+        "deno-build.mjs:28",
+        "deno-build.mjs:29",
+        "deno-build.mjs:32",
+        "deno-build.mjs:39"
+      ]
+    },
+    "timeoutSec": 300,
+    "tags": [
+      "generated:v1",
+      "medium",
+      "js"
+    ]
+  },
+  {
+    "id": "gen-whocalls-oss-zod-projectRoot",
+    "category": "callers-impact",
+    "style": "qa",
+    "target": "oss-zod",
+    "prompt": "List every call site of `projectRoot`, as path:line, one per line. Answer only with the list.",
+    "grader": {
+      "kind": "path-line-set",
+      "key": [
+        "deno-build.mjs:23",
+        "deno-build.mjs:24"
+      ]
+    },
+    "timeoutSec": 300,
+    "tags": [
+      "generated:v1",
+      "medium",
+      "js"
+    ]
+  },
+  {
+    "id": "gen-whocalls-oss-zod-walkAndBuild",
+    "category": "callers-impact",
+    "style": "qa",
+    "target": "oss-zod",
+    "prompt": "List every call site of `walkAndBuild`, as path:line, one per line. Answer only with the list.",
+    "grader": {
+      "kind": "path-line-set",
+      "key": [
+        "deno-build.mjs:37",
+        "deno-build.mjs:91"
+      ]
+    },
+    "timeoutSec": 300,
+    "tags": [
+      "generated:v1",
+      "medium",
+      "js"
+    ]
+  }
+]

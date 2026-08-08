@@ -1,10 +1,13 @@
 import { execFileSync } from "node:child_process";
-import { appendFileSync, cpSync, mkdirSync, rmSync, writeFileSync } from "node:fs";
+import { appendFileSync, cpSync, existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { createHash } from "node:crypto";
 import { dirname, join, resolve } from "node:path";
 import { benchMcpConfig, buildClaudeInvocation, parseClaudeStream } from "./adapters/claude";
 import { buildCodexInvocation, computeCost, parseCodexStream } from "./adapters/codex";
+import { isWithArm } from "./adapters/types";
 import type { AgentInvocation, Arm, ParsedTranscript, RunMetrics } from "./adapters/types";
+import { installInstructions, planInstructions } from "./instructions";
+import type { InstallResult } from "./instructions";
 import { gradeExact, gradePathLineSet, gradeSet, gradeEdit, GradeResult } from "./graders/deterministic";
 import { CATEGORIES, TASKS, type BenchTask } from "../tasks";
 import { TARGETS, type Materialized } from "../targets";
@@ -24,6 +27,22 @@ import { buildReport, readRuns, setCategoryResolver, writeReport } from "./repor
 
 export const HARNESS_VERSION = "0.1.0";
 
+/**
+ * The built code-index binary under test. Invoked directly via the current node
+ * — NOT `npx code-index`, which resolves the workspace's own package bin first
+ * and so breaks the `self` target (a clone of this repo whose gitignored dist/
+ * is absent). Also removes any dependency on `npm link`.
+ */
+const CODE_INDEX_BIN = resolve(__dirname, "..", "..", "dist", "cli.js");
+
+/**
+ * The shipped `integrations/` artifacts on disk (repo-root/integrations),
+ * resolved off this module's location. Per FR-505 this composition root is the
+ * ONLY code that knows where artifacts live; installInstructions receives it
+ * explicitly rather than defaulting inside the adapter.
+ */
+const INTEGRATIONS_ROOT = resolve(__dirname, "..", "..", "integrations");
+
 /** The append-only record shape from benchmark.md#results--reporting. */
 export interface RunRecord {
   run_id: string;
@@ -36,16 +55,23 @@ export interface RunRecord {
     model: string;
     code_index: string;
     task_set: string;
+    /** sha256[..12] of injected instruction content; null for non-skill arms (FR-602). */
+    skill_set: string | null;
   };
   metrics: {
     tokens_in: number;
     tokens_out: number;
     tokens_cache: number;
+    /** Split of tokens_cache (FR-603); tokens_cache kept for back-compat. */
+    tokens_cache_read: number;
+    tokens_cache_creation: number;
     cost_usd: number | null;
     wall_s: number | null;
     turns: number;
     tool_calls: number;
     mcp_calls: number;
+    /** Non-MCP tool calls — adoption denominator (FR-604); previously dropped at write. */
+    baseline_calls: number;
     index_build_s: number | null;
   };
   score: number;
@@ -70,6 +96,25 @@ export interface RunContext {
   workspaceDir: string;
   /** null for without-arm runs (no index is built). */
   indexBuildSeconds: number | null;
+  /**
+   * Result of instruction injection (from deps.installInstructions), threaded
+   * in by benchRun so executeRun stays fs-free. Omitted → treated as a
+   * non-skill no-op (`{ hash: null, flags: [] }`), which is also the shape for
+   * the four non-skill arms.
+   */
+  skillInstall?: SkillInstall;
+}
+
+/**
+ * Result of instruction injection for one run (SK-D03's `InstallResult` plus a
+ * diagnostic-mode field). In the default file-copy mode `systemPromptBody` is
+ * absent. In `BENCH_SKILL_MODE=system-prompt` (FR-404), defaultDeps skips the
+ * file copy and returns the SKILL.md body here so executeRun can inject it via
+ * the claude adapter's `--append-system-prompt`; `flags` then carries
+ * `skill_mode:system-prompt`.
+ */
+export interface SkillInstall extends InstallResult {
+  systemPromptBody?: string;
 }
 
 /** Injected seams; defaultDeps() supplies the real implementations. */
@@ -77,6 +122,17 @@ export interface HarnessDeps {
   materialize(targetName: string): Materialized;
   /** Build the index in a with-arm workspace; returns build seconds. */
   buildIndex(workspaceDir: string): number;
+  /**
+   * Inject the shipped skill artifact into a skill-arm workspace (FR-502).
+   * Called after materialize + buildIndex, before agent invocation. Returns
+   * the injected-content hash + install flags (and, in diagnostic mode, the
+   * SKILL.md body to inject via system prompt instead of file copy). A no-op
+   * returning `{ hash: null, flags: [] }` for the four non-skill arms.
+   *
+   * Optional so a fake `HarnessDeps` may omit it (benchRun then treats every
+   * arm as a non-skill no-op); defaultDeps always supplies the real installer.
+   */
+  installInstructions?(workspaceDir: string, arm: Arm): SkillInstall;
   runAgent(invocation: AgentInvocation, opts: { cwd: string; timeoutSec: number }): Promise<AgentRunResult>;
   gradeTask(task: BenchTask, input: { answer: string; workspaceDir: string }): GradeResult;
   /**
@@ -86,6 +142,12 @@ export interface HarnessDeps {
    * defaultDeps resolves each; without-arms never call this.
    */
   mcpConfigFor(arm: Arm): string | undefined;
+  /**
+   * Persist the raw agent stdout (the --json event stream) into the run's
+   * workspace so parser drift stays diagnosable offline. Called after grading
+   * so the extra file can never perturb a test-diff grade.
+   */
+  saveTranscript(workspaceDir: string, stdout: string): void;
   /**
    * Relocate the just-run workspace under results/runs/<suiteStamp>/<runId>/
    * for offline re-scoring (benchmark.md KEEP node) and return its final
@@ -138,13 +200,25 @@ function finalizeMetrics(arm: Arm, parsed: ParsedTranscript, model: string, wall
 /** Execute one (task, arm, rep) run and return its record — appends nothing. */
 export async function executeRun(ctx: RunContext, deps: HarnessDeps): Promise<RunRecord> {
   const { task, arm, rep, model, workspaceDir } = ctx;
+  const skillInstall: SkillInstall = ctx.skillInstall ?? { hash: null, flags: [] };
   const { build, parse } = adapterFor(arm);
-  const mcpConfigPath = arm.endsWith("-with") ? deps.mcpConfigFor(arm) : undefined;
-  const invocation = build({ prompt: task.prompt, arm, model, mcpConfigPath, editTier: task.style === "edit" });
+  const mcpConfigPath = isWithArm(arm) ? deps.mcpConfigFor(arm) : undefined;
+  const invocation = build({
+    prompt: task.prompt,
+    arm,
+    model,
+    mcpConfigPath,
+    editTier: task.style === "edit",
+    // Diagnostic mode (FR-404): defaultDeps supplies the SKILL.md body here
+    // instead of file-installing; the adapter ignores it for non-skill arms.
+    systemPromptSkill: skillInstall.systemPromptBody,
+  });
 
   const agent = await deps.runAgent(invocation, { cwd: workspaceDir, timeoutSec: task.timeoutSec });
   const parsed = parse(agent.stdout);
-  const flags = [...parsed.flags];
+  // Install-time signals (agents_md_appended, skill_mode:system-prompt) join
+  // the parsed transcript flags (FR-605).
+  const flags = [...parsed.flags, ...skillInstall.flags];
   if (agent.timedOut) flags.push("timeout");
 
   let score = 0;
@@ -152,6 +226,7 @@ export async function executeRun(ctx: RunContext, deps: HarnessDeps): Promise<Ru
     const graded = deps.gradeTask(task, { answer: parsed.finalAnswer, workspaceDir });
     score = graded.score;
   }
+  deps.saveTranscript(workspaceDir, agent.stdout);
 
   const metrics = finalizeMetrics(arm, parsed, model, agent.wallSeconds);
   const stamp = deps.now();
@@ -166,16 +241,20 @@ export async function executeRun(ctx: RunContext, deps: HarnessDeps): Promise<Ru
       model,
       code_index: deps.codeIndexVersion,
       task_set: deps.taskSetHash,
+      skill_set: skillInstall.hash,
     },
     metrics: {
       tokens_in: metrics.tokensIn,
       tokens_out: metrics.tokensOut,
       tokens_cache: metrics.tokensCache,
+      tokens_cache_read: metrics.tokensCacheRead,
+      tokens_cache_creation: metrics.tokensCacheCreation,
       cost_usd: metrics.costUsd,
       wall_s: metrics.wallSeconds,
       turns: metrics.turns,
       tool_calls: metrics.toolCalls,
       mcp_calls: metrics.mcpCalls,
+      baseline_calls: metrics.baselineCalls,
       index_build_s: ctx.indexBuildSeconds,
     },
     score,
@@ -228,9 +307,12 @@ export async function benchRun(plan: RunPlan, deps: HarnessDeps): Promise<RunRec
       for (let rep = 1; rep <= plan.runs; rep++) {
         units.push(async () => {
           const ws = deps.materialize(task.target);
-          const indexBuildSeconds = arm.endsWith("-with") ? deps.buildIndex(ws.dir) : null;
+          const indexBuildSeconds = isWithArm(arm) ? deps.buildIndex(ws.dir) : null;
+          // Inject the skill artifact after the index is built, before the agent
+          // runs. No-op for the four non-skill arms (plan-empty → hash null).
+          const skillInstall = deps.installInstructions?.(ws.dir, arm) ?? { hash: null, flags: [] };
           const record = await executeRun(
-            { task, arm, rep, model: plan.model, workspaceDir: ws.dir, indexBuildSeconds },
+            { task, arm, rep, model: plan.model, workspaceDir: ws.dir, indexBuildSeconds, skillInstall },
             deps,
           );
           // Relocate the workspace under results/runs/ and record its final
@@ -247,6 +329,9 @@ export async function benchRun(plan: RunPlan, deps: HarnessDeps): Promise<RunRec
 
 /** Real dependencies for a live `bench run`. */
 export function defaultDeps(resultsDir: string, taskSet: BenchTask[], codeIndexVersion: string): HarnessDeps {
+  if (!existsSync(CODE_INDEX_BIN)) {
+    throw new Error(`code-index build not found at ${CODE_INDEX_BIN} — run \`npm run build\` first`);
+  }
   return {
     materialize: (targetName) => {
       const target = TARGETS[targetName];
@@ -256,8 +341,34 @@ export function defaultDeps(resultsDir: string, taskSet: BenchTask[], codeIndexV
     },
     buildIndex: (workspaceDir) => {
       const started = Date.now();
-      execFileSync("npx", ["code-index", "index", "."], { cwd: workspaceDir, stdio: "ignore" });
+      try {
+        execFileSync(process.execPath, [CODE_INDEX_BIN, "index", "."], {
+          cwd: workspaceDir,
+          stdio: ["ignore", "ignore", "pipe"],
+        });
+      } catch (error) {
+        const stderr = String((error as { stderr?: Buffer }).stderr ?? "").trim();
+        throw new Error(`code-index index failed in ${workspaceDir}: ${stderr || (error as Error).message}`);
+      }
       return (Date.now() - started) / 1000;
+    },
+    installInstructions: (workspaceDir, arm) => {
+      // FR-404 diagnostic mode: for a Claude skill arm, skip the file copy and
+      // hand the SKILL.md body to the adapter as a system prompt instead. The
+      // flag is ALWAYS stamped when the mode is active, so a headline run can
+      // never silently use it. Codex skill arms have no system-prompt path, so
+      // they still file-install even in this mode.
+      if (
+        process.env.BENCH_SKILL_MODE === "system-prompt" &&
+        arm === "claude-with-skill"
+      ) {
+        const [plan] = planInstructions(arm);
+        const body = readFileSync(join(INTEGRATIONS_ROOT, plan.source), "utf8");
+        const hash = createHash("sha256").update(body).digest("hex").slice(0, 12);
+        return { hash, flags: ["skill_mode:system-prompt"], systemPromptBody: body };
+      }
+      // Default: copy the shipped artifact into the workspace verbatim (FR-502).
+      return installInstructions(workspaceDir, arm, INTEGRATIONS_ROOT);
     },
     runAgent: async (invocation, opts) => {
       const started = Date.now();
@@ -289,10 +400,13 @@ export function defaultDeps(resultsDir: string, taskSet: BenchTask[], codeIndexV
       if (arm.startsWith("claude")) {
         const path = join(resolve(resultsDir), "bench-mcp.json");
         mkdirSync(resolve(resultsDir), { recursive: true });
-        writeFileSync(path, benchMcpConfig("npx", ["code-index", "serve", "."]));
+        writeFileSync(path, benchMcpConfig(process.execPath, [CODE_INDEX_BIN, "serve", "."]));
         return path;
       }
-      return "npx code-index serve .";
+      return `${process.execPath} ${CODE_INDEX_BIN} serve .`;
+    },
+    saveTranscript: (workspaceDir, stdout) => {
+      writeFileSync(join(workspaceDir, "agent-transcript.jsonl"), stdout);
     },
     preserveWorkspace: (tempDir, suiteStamp, runId) => {
       const dest = join(resolve(resultsDir), "runs", suiteStamp, runId);
@@ -319,7 +433,14 @@ export interface BenchArgs {
   resultsDir: string;
 }
 
-const ALL_ARMS: Arm[] = ["claude-with", "claude-without", "codex-with", "codex-without"];
+const ALL_ARMS: Arm[] = [
+  "claude-with",
+  "claude-without",
+  "claude-with-skill",
+  "codex-with",
+  "codex-without",
+  "codex-with-skill",
+];
 
 /** Parse `bench run --task <ids|category|all> --arms <a,b> --runs N --workers N`. */
 export function parseBenchArgs(argv: string[]): BenchArgs {

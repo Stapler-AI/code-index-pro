@@ -68,6 +68,51 @@ export interface BenchTask {
 
 export class TaskValidationError extends Error {}
 
+/**
+ * FR-803: task prompts must be tool-agnostic — they may not name a retrieval
+ * mechanism, so no arm is steered toward the index. Forbidden classes:
+ *   - the 11 MCP tool names (from the server catalog), incl. `reindex`;
+ *   - "MCP";
+ *   - "code-index" / "code index";
+ *   - "index"-as-mechanism phrasing: "the index", "indexed".
+ *
+ * False-positive boundary (deliberately NOT flagged): the bare word "index" is
+ * allowed, so legitimate prompt vocabulary survives — the repo's own
+ * `src/index.ts` path, the product's "indexing pipeline" / "index command"
+ * domain terms, and unrelated words like "indexOf" and "indentation". The rule
+ * targets mechanism phrases and tool names, never the bare "index" substring.
+ * Word-boundary, case-insensitive.
+ */
+const TOOL_NAMES = [
+  "index_status",
+  "module_map",
+  "file_outline",
+  "find_symbol",
+  "who_calls",
+  "impact_of_change",
+  "get_dependencies",
+  "search_code",
+  "search_structural",
+  "get_chunk",
+  "reindex",
+] as const;
+
+const FORBIDDEN_PROMPT_PATTERNS: RegExp[] = [
+  new RegExp(`\\b(${TOOL_NAMES.join("|")})\\b`, "i"),
+  /\bMCP\b/i,
+  /\bcode[- ]index\b/i,
+  /\bthe\s+index\b/i,
+  /\bindexed\b/i,
+];
+
+function forbiddenPromptMention(prompt: string): string | null {
+  for (const re of FORBIDDEN_PROMPT_PATTERNS) {
+    const m = prompt.match(re);
+    if (m) return m[0];
+  }
+  return null;
+}
+
 function graderKeyMissing(grader: GraderRef): boolean {
   switch (grader.kind) {
     case "exact":
@@ -111,13 +156,50 @@ export function validateTasks(tasks: BenchTask[], targetNames: string[] = Object
     if (!Number.isInteger(task.timeoutSec) || task.timeoutSec <= 0) {
       throw new TaskValidationError(`task ${task.id}: timeoutSec must be a positive integer`);
     }
+    const mention = forbiddenPromptMention(task.prompt);
+    if (mention !== null) {
+      throw new TaskValidationError(
+        `task ${task.id}: prompt names a retrieval mechanism (${mention}) — prompts must be tool-agnostic`,
+      );
+    }
   }
 }
 
-/** Hand-authored seed set (DEV-903) + generated entries (DEV-908). */
+/** Hand-authored seed set (DEV-903) + generated entries (DEV-908 / SK-D12). */
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 import { SEED_TASKS } from "./seed-tasks";
 
-export const TASKS: BenchTask[] = [...SEED_TASKS];
+/**
+ * Generated-task filter (SK-D12, FR-802). Index-driven generated tasks are
+ * EXCLUDED from `TASKS` by default and included ONLY when the filter is engaged
+ * via the env var `BENCH_INCLUDE_GENERATED=v1`.
+ *
+ * Why an env var (the smallest mechanism consistent with `resolveTasks`): the
+ * harness's `--task` selector filters an already-assembled `TASKS`; it never
+ * decides membership. Membership is decided here, once, at registry load — an
+ * env flag keeps that decision in one place with no new selector grammar and no
+ * change to `run.ts`. Default-off is airtight: with the var unset (or any value
+ * other than "v1"), the generated set is never read, so no run can silently pick
+ * up generated tasks.
+ *
+ * NO import-time DB/index work: generated tasks are read from a checked-in JSON
+ * snapshot (`generated-tasks.v1.json`, produced by `npm run bench:generate`).
+ * The snapshot is a plain file read — importing this module never builds an
+ * index (that would break `npm test`).
+ */
+export const GENERATED_TASK_SET_VERSION = "v1";
+const GENERATED_SNAPSHOT_PATH = resolve(__dirname, `generated-tasks.${GENERATED_TASK_SET_VERSION}.json`);
 
-// Validated at load: importing a broken registry is an immediate error.
+function loadGeneratedTasks(): BenchTask[] {
+  if (process.env.BENCH_INCLUDE_GENERATED !== GENERATED_TASK_SET_VERSION) return [];
+  return JSON.parse(readFileSync(GENERATED_SNAPSHOT_PATH, "utf8")) as BenchTask[];
+}
+
+export const TASKS: BenchTask[] = [...SEED_TASKS, ...loadGeneratedTasks()];
+
+// Validated at load: importing a broken registry is an immediate error. This
+// also enforces id-uniqueness across authored + generated (generated ids are
+// `gen-*`-prefixed and so never collide with the authored `<cat>-<target>-*`
+// scheme, but the duplicate-id check is the load-time guard either way).
 validateTasks(TASKS);

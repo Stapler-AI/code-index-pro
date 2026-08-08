@@ -1,7 +1,10 @@
 import { execFileSync } from "node:child_process";
 import { createHash } from "node:crypto";
+import { existsSync, writeFileSync } from "node:fs";
+import { join, resolve } from "node:path";
+import BetterSqlite3 from "better-sqlite3";
 import type { Database } from "better-sqlite3";
-import type { BenchTask, Category } from "./tasks";
+import { validateTasks, type BenchTask, type Category } from "./tasks";
 import { TARGETS } from "./targets";
 
 /**
@@ -209,4 +212,98 @@ export function grepCrossCheckCallers(repoRoot: string, name: string): string[] 
     if (m && callPattern.test(m[3])) hits.push(`${m[1]}:${m[2]}`);
   }
   return hits;
+}
+
+// ── Generate-and-cache: snapshot produced by `npm run bench:generate` ─────────
+//
+// SK-D12 (FR-802). The registry must NOT build an index at import time — that
+// would break `npm test`. So generation is an explicit, offline step: this
+// script materializes the target, builds the index via the shipped CLI (no
+// import of `src/` pipeline modules — the benchmarks→src boundary permits only
+// `src/storage/meta`), reads the resulting `.code-index/index.db` with a raw
+// better-sqlite3 handle, derives tasks, validates them, and writes a checked-in
+// JSON snapshot. `tasks.ts` then loads that snapshot (a plain file read) behind
+// the `BENCH_INCLUDE_GENERATED=v1` filter — never a live index build.
+
+/** Snapshot scope: initially oss-zod only (SK-D12). */
+export const GENERATED_TARGETS = ["oss-zod"] as const;
+
+/** Checked-in snapshot the registry loads when the filter is engaged. */
+export const GENERATED_SNAPSHOT_PATH = resolve(__dirname, `generated-tasks.${GENERATOR_VERSION}.json`);
+
+const CODE_INDEX_BIN = resolve(__dirname, "..", "dist", "cli.js");
+
+/**
+ * Deterministic ordering of a task set: sort by id. `generateTasks` already
+ * emits rows in a stable SQL `ORDER BY`, but a final id sort makes the snapshot
+ * byte-stable regardless of generator-function call order, so the `task_set`
+ * hash is reproducible across regenerations of the same target checkout.
+ */
+function sortTasks(tasks: BenchTask[]): BenchTask[] {
+  return [...tasks].sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0));
+}
+
+/**
+ * Generate the task set for one target checkout: materialize a fresh copy,
+ * build its index with the shipped CLI, and derive tasks from the DB. Returns
+ * the id-sorted, validated task list. Any generated prompt that would trip
+ * `validateTasks` (e.g. a target symbol literally named like an MCP tool) is
+ * dropped up front so the snapshot always validates.
+ */
+export function generateSnapshotForTarget(targetName: string): BenchTask[] {
+  if (!existsSync(CODE_INDEX_BIN)) {
+    throw new Error(`code-index build not found at ${CODE_INDEX_BIN} — run \`npm run build\` first`);
+  }
+  const target = TARGETS[targetName];
+  if (!target) throw new Error(`unknown target: ${targetName}`);
+  target.ensureCache();
+  const ws = target.materialize();
+  try {
+    execFileSync(process.execPath, [CODE_INDEX_BIN, "index", "."], {
+      cwd: ws.dir,
+      stdio: ["ignore", "ignore", "pipe"],
+    });
+    const db = new BetterSqlite3(join(ws.dir, ".code-index", "index.db"), { readonly: true });
+    try {
+      const tasks = sortTasks(generateTasks(db, targetName));
+      // Drop any task whose prompt would fail the tool-agnostic rule (SK-D10),
+      // so the checked-in snapshot always validates cleanly.
+      const clean = tasks.filter((t) => {
+        try {
+          validateTasks([t], [targetName]);
+          return true;
+        } catch {
+          return false;
+        }
+      });
+      validateTasks(clean, [targetName]);
+      return clean;
+    } finally {
+      db.close();
+    }
+  } finally {
+    ws.cleanup();
+  }
+}
+
+/** Regenerate the checked-in snapshot for every in-scope target and write it. */
+export function writeGeneratedSnapshot(): { path: string; count: number } {
+  const all: BenchTask[] = [];
+  for (const targetName of GENERATED_TARGETS) {
+    all.push(...generateSnapshotForTarget(targetName));
+  }
+  const tasks = sortTasks(all);
+  // Trailing newline + 2-space indent keep the checked-in file diff-friendly.
+  writeFileSync(GENERATED_SNAPSHOT_PATH, `${JSON.stringify(tasks, null, 2)}\n`);
+  return { path: GENERATED_SNAPSHOT_PATH, count: tasks.length };
+}
+
+if (require.main === module) {
+  try {
+    const { path, count } = writeGeneratedSnapshot();
+    process.stdout.write(`bench:generate wrote ${count} generated tasks -> ${path}\n`);
+  } catch (error) {
+    process.stderr.write(`bench:generate: ${(error as Error).message}\n`);
+    process.exit(1);
+  }
 }
