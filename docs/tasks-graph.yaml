@@ -2125,7 +2125,7 @@ nodes:
     title: "Review: Harness orchestrator"
     type: rev
     milestone: M8
-    status: pending
+    status: approved
     implements: ["Review gate for benchmark.md §Harness, §Metrics"]
     spec: ["benchmark.md#harness", "benchmark.md#metrics"]
     depends_on: [DEV-906, QA-906]
@@ -2168,7 +2168,7 @@ nodes:
     title: "Review: LLM judge"
     type: rev
     milestone: M8
-    status: pending
+    status: approved
     implements: ["Review gate for benchmark.md §Grading & judges (rung 3)"]
     spec: ["benchmark.md#grading--judges"]
     depends_on: [DEV-907, QA-907]
@@ -2178,7 +2178,7 @@ nodes:
     title: "Index-driven task generator"
     type: dev
     milestone: M8
-    status: pending
+    status: done
     implements: ["benchmark.md §Task generation (source 2 + circularity mitigations)"]
     spec: ["benchmark.md#task-generation"]
     depends_on: [DEV-901, DEV-701, DEV-304]
@@ -2200,7 +2200,7 @@ nodes:
     title: "Tests: generated tasks & key cross-check"
     type: qa
     milestone: M8
-    status: pending
+    status: done
     implements: ["benchmark.md §Task generation acceptance (generated entries, spot validation)"]
     depends_on: [DEV-908, QA-000]
     scope: >-

@@ -154,6 +154,24 @@ export async function runSelfTest(invoke: JudgeInvoke): Promise<SelfTestResult> 
 export const JUDGE_MODEL = "claude-opus-4";
 
 /**
+ * `judge --selftest [model]` runs the fixtures through the live judge and
+ * exits non-zero if any lands on the wrong side of the threshold — the
+ * auditable calibration check the spec asks the judge to ship with.
+ */
+export async function main(argv: string[]): Promise<number> {
+  if (argv[0] !== "--selftest") {
+    process.stderr.write("usage: judge --selftest [model]\n");
+    return 1;
+  }
+  const result = await runSelfTest(claudeCliJudge(argv[1] ?? JUDGE_MODEL));
+  for (const c of result.cases) {
+    process.stdout.write(`${c.ok ? "PASS" : "FAIL"} ${c.name} score=${c.score.toFixed(2)} (want ${c.shouldPass ? "≥" : "<"}${JUDGE_PASS_THRESHOLD})\n`);
+  }
+  process.stdout.write(result.passed ? "selftest: PASS\n" : "selftest: FAIL\n");
+  return result.passed ? 0 : 1;
+}
+
+/**
  * Default judge invocation: the pinned model via the Claude CLI, headless,
  * NO tools (the judge only reasons over the prompt text). Temperature 0 is
  * requested through the strict-JSON instruction; the CLI version and model
@@ -169,4 +187,14 @@ export function claudeCliJudge(model: string = JUDGE_MODEL): JudgeInvoke {
     const result = JSON.parse(stdout) as { result?: string; total_cost_usd?: number };
     return { text: result.result ?? stdout, costUsd: result.total_cost_usd ?? null };
   };
+}
+
+if (require.main === module) {
+  main(process.argv.slice(2)).then(
+    (code) => process.exit(code),
+    (error) => {
+      process.stderr.write(`judge: ${(error as Error).message}\n`);
+      process.exit(1);
+    },
+  );
 }
