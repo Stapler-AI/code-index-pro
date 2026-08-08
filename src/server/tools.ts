@@ -10,6 +10,7 @@ import {
   whoCalls,
 } from "../query/graph";
 import { searchCode } from "../query/search";
+import { searchStructural, StructuralSearchError } from "../query/structural";
 import { getRecoveryEvents } from "../storage/health";
 import type { ServerContext, ToolDefinition } from "./server";
 
@@ -194,10 +195,10 @@ const searchCodeTool: ToolDefinition = {
   },
 };
 
-const searchStructural: ToolDefinition = {
+const searchStructuralTool: ToolDefinition = {
   name: "search_structural",
   description:
-    "Structural (AST-shape) search over the live working tree via ast-grep. Not yet available in this build.",
+    "Structural (AST-shape) search over the LIVE working tree via ast-grep: pattern (with lang) for direct shapes, rule (inline YAML) for contextual ones. Runtime prerequisite: the ast-grep binary.",
   inputSchema: {
     type: "object",
     properties: {
@@ -205,18 +206,30 @@ const searchStructural: ToolDefinition = {
       rule: { type: "string" },
       lang: { type: "string" },
       paths: { type: "array", items: { type: "string" } },
+      limit: { type: "integer", minimum: 1 },
     },
     additionalProperties: false,
   },
   // Live working tree, not the index — exempt from index_age_seconds (FR-604).
   indexBacked: false,
-  handler: () => {
-    // FR-503 stub until DEV-501 lands: distinguishable missing-prerequisite
-    // error naming the prerequisite and how to install it.
-    throw new ToolError(
-      "missing_prerequisite: ast-grep — search_structural requires the ast-grep binary, which is not available. " +
-        "Install it with `npm install -g @ast-grep/cli` or `brew install ast-grep`, then retry.",
-    );
+  handler: (args, ctx) => {
+    const paths = args.paths;
+    if (paths !== undefined && (!Array.isArray(paths) || paths.some((p) => typeof p !== "string"))) {
+      throw new ToolError("paths must be an array of strings");
+    }
+    try {
+      const { results, truncated } = searchStructural(ctx.repoRoot, {
+        pattern: optionalString(args, "pattern"),
+        rule: optionalString(args, "rule"),
+        lang: optionalString(args, "lang"),
+        paths: paths as string[] | undefined,
+        limit: optionalPositiveInt(args, "limit"),
+      });
+      return { results, truncated };
+    } catch (error) {
+      if (error instanceof StructuralSearchError) throw new ToolError(error.message);
+      throw error;
+    }
   },
 };
 
@@ -502,7 +515,7 @@ export const TOOL_CATALOG: ToolDefinition[] = [
   indexStatus,
   reindex,
   searchCodeTool,
-  searchStructural,
+  searchStructuralTool,
   getChunk,
   fileOutlineTool,
   findSymbolTool,

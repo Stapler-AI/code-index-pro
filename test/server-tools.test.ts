@@ -195,10 +195,16 @@ export function rebuild(writer: Writer): void {
     expect(bad.errorText).toContain("invalid FTS query");
   });
 
-  it("search_structural is the FR-503 missing-prerequisite stub", async () => {
-    const result = await call("search_structural", { pattern: "console.log($A)", lang: "javascript" });
-    expect(result.errorText).toContain("missing_prerequisite: ast-grep");
-    expect(result.errorText).toContain("install");
+  it("search_structural runs live ast-grep queries, unstamped by index age", async () => {
+    const structural = (await payload("search_structural", {
+      pattern: "writer.$METHOD($$$ARGS)",
+      lang: "typescript",
+    })) as { results: { path: string; lines: number[]; preview: string }[]; truncated: boolean };
+    expect(structural.results.length).toBeGreaterThan(0);
+    expect(structural.results[0].path).toBe("src/runner.ts");
+    // Live working tree: exempt from the FR-604 staleness stamp, and no id.
+    expect("index_age_seconds" in structural).toBe(false);
+    expect("id" in structural.results[0]).toBe(false);
   });
 
   it("get_chunk errors distinctly for unknown ids", async () => {

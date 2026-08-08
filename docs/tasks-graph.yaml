@@ -1534,7 +1534,7 @@ nodes:
     title: "ast-grep invocation"
     type: dev
     milestone: M6
-    status: pending
+    status: done
     implements: [FR-501]
     spec: ["search.md#structural-search-ast-grep"]
     depends_on: [DEV-601]
@@ -1555,7 +1555,7 @@ nodes:
     title: "Tests: pattern & rule queries, freshness"
     type: qa
     milestone: M6
-    status: pending
+    status: done
     implements: ["FR-501 / FR-500 acceptance (a pattern query and an inline-rules query both return normalized results; an edit made after the last index run is found)"]
     depends_on: [DEV-501, QA-000]
     scope: >-
@@ -1570,7 +1570,7 @@ nodes:
     title: "Review: ast-grep invocation"
     type: rev
     milestone: M6
-    status: pending
+    status: approved
     implements: ["Review gate for FR-501"]
     spec: ["search.md#structural-search-ast-grep"]
     depends_on: [DEV-501, QA-501]
