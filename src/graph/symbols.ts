@@ -123,17 +123,24 @@ function collectExportedNames(language: Language, tree: Parser.Tree): Set<string
   return names;
 }
 
+/** A symbol row plus its declaration node, for edge attribution (FR-303). */
+export interface ExtractedSymbol {
+  input: SymbolInput;
+  node: Parser.SyntaxNode;
+}
+
 /**
  * Extract symbols rows from the tree chunking already parsed (no re-parse).
  * chunks must be extractChunks' output for the same tree/content so byte keys
- * line up. Returns symbols in source order (outermost first at equal starts).
+ * line up. Returns symbols in source order (outermost first at equal starts);
+ * edge extraction relies on this order matching the persisted symbols array.
  */
-export function extractSymbols(
+export function extractSymbolsWithNodes(
   language: Language,
   content: string,
   tree: Parser.Tree,
   chunks: ChunkInput[],
-): SymbolInput[] {
+): ExtractedSymbol[] {
   const toByte = makeByteOffset(content);
   const chunkIndexByKey = new Map<string, number>();
   chunks.forEach((chunk, index) => {
@@ -141,7 +148,7 @@ export function extractSymbols(
   });
 
   const exportedNames = collectExportedNames(language, tree);
-  const symbols: { input: SymbolInput; startByte: number; endByte: number }[] = [];
+  const symbols: (ExtractedSymbol & { startByte: number; endByte: number })[] = [];
 
   for (const match of runQuery(language, "symbols", tree)) {
     const definition = match.captures.find((c) => c.name.startsWith("definition."));
@@ -155,6 +162,7 @@ export function extractSymbols(
     symbols.push({
       startByte,
       endByte,
+      node,
       input: {
         chunkIndex: chunkIndexByKey.get(`${startByte}:${endByte}:${node.type}`) ?? null,
         name: name.node.text,
@@ -168,5 +176,15 @@ export function extractSymbols(
   }
 
   symbols.sort((a, b) => a.startByte - b.startByte || b.endByte - a.endByte);
-  return symbols.map((s) => s.input);
+  return symbols.map(({ input, node }) => ({ input, node }));
+}
+
+/** SymbolInput rows only — what the storage layer persists. */
+export function extractSymbols(
+  language: Language,
+  content: string,
+  tree: Parser.Tree,
+  chunks: ChunkInput[],
+): SymbolInput[] {
+  return extractSymbolsWithNodes(language, content, tree, chunks).map((s) => s.input);
 }

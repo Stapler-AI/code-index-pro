@@ -971,7 +971,7 @@ nodes:
     title: "Edge extraction"
     type: dev
     milestone: M3
-    status: pending
+    status: done
     implements: [FR-303]
     spec: ["ast-graph.md#edge-model"]
     depends_on: [DEV-301]
@@ -991,7 +991,7 @@ nodes:
     title: "Tests: edge rows"
     type: qa
     milestone: M3
-    status: pending
+    status: done
     implements: ["FR-303 / FR-300 acceptance (edges match expected rows)"]
     depends_on: [DEV-303, QA-000]
     scope: >-
@@ -1005,7 +1005,7 @@ nodes:
     title: "Review: Edge extraction"
     type: rev
     milestone: M3
-    status: pending
+    status: approved
     implements: ["Review gate for FR-303"]
     spec: ["ast-graph.md#edge-model"]
     depends_on: [DEV-303, QA-303]
