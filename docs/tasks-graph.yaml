@@ -1322,7 +1322,7 @@ nodes:
     title: "Server shell & startup"
     type: dev
     milestone: M5
-    status: pending
+    status: done
     implements: [FR-601]
     spec: ["mcp-server.md"]
     depends_on: [DEV-107, DEV-206]
@@ -1339,7 +1339,7 @@ nodes:
     title: "Tests: startup behavior"
     type: qa
     milestone: M5
-    status: pending
+    status: done
     implements: ["FR-601 / FR-600 acceptance (first tool call succeeds while startup reindex is still running)"]
     depends_on: [DEV-601, QA-000]
     scope: >-
@@ -1354,7 +1354,7 @@ nodes:
     title: "Review: Server shell & startup"
     type: rev
     milestone: M5
-    status: pending
+    status: approved
     implements: ["Review gate for FR-601"]
     spec: ["mcp-server.md"]
     depends_on: [DEV-601, QA-601]
