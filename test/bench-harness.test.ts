@@ -1,4 +1,4 @@
-import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync } from "node:fs";
+import { cpSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
@@ -8,8 +8,11 @@ import {
   gradeByKind,
   hashTaskSet,
   HarnessDeps,
+  parseBenchArgs,
+  resolveTasks,
   RunPlan,
 } from "../benchmarks/harness/run";
+import { SEED_TASKS } from "../benchmarks/seed-tasks";
 import type { AgentInvocation, Arm } from "../benchmarks/harness/adapters/types";
 import type { BenchTask } from "../benchmarks/tasks";
 
@@ -101,6 +104,13 @@ describe("harness orchestrator (DEV-906 / QA-906)", () => {
       }),
       gradeTask: gradeByKind,
       mcpConfigFor: (arm) => (arm.startsWith("claude") ? "/tmp/bench-mcp.json" : "npx code-index serve ."),
+      preserveWorkspace: (tempDir, suiteStamp, runId) => {
+        const dest = join(resultsDir, "runs", suiteStamp, runId);
+        mkdirSync(join(resultsDir, "runs", suiteStamp), { recursive: true });
+        cpSync(tempDir, dest, { recursive: true });
+        rmSync(tempDir, { recursive: true, force: true });
+        return dest;
+      },
       now: () => `2026-01-01T00-00-0${counter}`,
       codeIndexVersion: "1.0.0",
       taskSetHash: hashTaskSet([TASK]),
@@ -153,7 +163,7 @@ describe("harness orchestrator (DEV-906 / QA-906)", () => {
     expect(indexBuilds).toHaveLength(1);
   });
 
-  it("each run gets a fresh workspace, preserved afterward (isolation)", async () => {
+  it("each run gets a fresh workspace, preserved under results/runs/ (isolation)", async () => {
     const plan: RunPlan = {
       tasks: [TASK],
       arms: ["claude-with"],
@@ -161,9 +171,18 @@ describe("harness orchestrator (DEV-906 / QA-906)", () => {
       model: "claude-opus-4",
       workers: 2,
     };
-    await benchRun(plan, fakeDeps());
-    expect(new Set(materializedDirs).size).toBe(3); // three distinct workspaces
-    for (const dir of materializedDirs) expect(existsSync(dir)).toBe(true); // preserved
+    const records = await benchRun(plan, fakeDeps());
+    expect(new Set(materializedDirs).size).toBe(3); // three distinct temp workspaces
+    for (const dir of materializedDirs) expect(existsSync(dir)).toBe(false); // temp relocated away
+
+    // Each record's workspace points under results/runs/<stamp>/<run_id>/ and exists.
+    const preserved = new Set(records.map((r) => r.workspace));
+    expect(preserved.size).toBe(3);
+    for (const record of records) {
+      expect(record.workspace).toContain(join(resultsDir, "runs"));
+      expect(record.workspace.endsWith(record.run_id)).toBe(true);
+      expect(existsSync(record.workspace)).toBe(true);
+    }
   });
 
   it("a timed-out run produces a flagged, zero-score record", async () => {
@@ -216,6 +235,29 @@ describe("harness orchestrator (DEV-906 / QA-906)", () => {
     // 1M in × $1.25 + 1M out × $10 per 1M = 11.25.
     expect(record.metrics.cost_usd).toBeCloseTo(11.25, 6);
     expect(record.metrics.wall_s).toBe(5); // harness fallback (Codex omits duration)
+  });
+
+  it("parseBenchArgs parses the documented flags with sensible defaults", () => {
+    const parsed = parseBenchArgs(["--task", "symbol-lookup", "--arms", "claude-with,claude-without", "--model", "m"]);
+    expect(parsed.taskSelector).toBe("symbol-lookup");
+    expect(parsed.arms).toEqual(["claude-with", "claude-without"]);
+    expect(parsed.runs).toBe(4); // default N
+    expect(parsed.workers).toBe(4);
+    expect(parsed.model).toBe("m");
+
+    expect(() => parseBenchArgs(["--arms", "bogus-arm"])).toThrow(/unknown arm/);
+    expect(() => parseBenchArgs(["--runs", "0"])).toThrow(/positive integer/);
+    expect(() => parseBenchArgs(["--task"])).toThrow(/needs a value/);
+  });
+
+  it("resolveTasks handles all | category | id-list", () => {
+    expect(resolveTasks("all", SEED_TASKS).length).toBe(SEED_TASKS.length);
+    const symbolTasks = resolveTasks("symbol-lookup", SEED_TASKS);
+    expect(symbolTasks.length).toBeGreaterThan(0);
+    expect(symbolTasks.every((t) => t.category === "symbol-lookup")).toBe(true);
+    const byId = resolveTasks("sl-fixture-greet-001,sl-zod-zoderror-001", SEED_TASKS);
+    expect(byId.map((t) => t.id).sort()).toEqual(["sl-fixture-greet-001", "sl-zod-zoderror-001"]);
+    expect(() => resolveTasks("no-such-task", SEED_TASKS)).toThrow(/matched no tasks/);
   });
 
   it("a judge-grader task refuses deterministic grading with a clear error", () => {

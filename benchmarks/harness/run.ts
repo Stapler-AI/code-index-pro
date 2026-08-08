@@ -1,13 +1,14 @@
 import { execFileSync } from "node:child_process";
-import { appendFileSync, mkdirSync, writeFileSync } from "node:fs";
+import { appendFileSync, cpSync, mkdirSync, rmSync, writeFileSync } from "node:fs";
 import { createHash } from "node:crypto";
-import { join, resolve } from "node:path";
+import { dirname, join, resolve } from "node:path";
 import { benchMcpConfig, buildClaudeInvocation, parseClaudeStream } from "./adapters/claude";
 import { buildCodexInvocation, computeCost, parseCodexStream } from "./adapters/codex";
 import type { AgentInvocation, Arm, ParsedTranscript, RunMetrics } from "./adapters/types";
 import { gradeExact, gradePathLineSet, gradeSet, gradeEdit, GradeResult } from "./graders/deterministic";
-import type { BenchTask } from "../tasks";
+import { CATEGORIES, TASKS, type BenchTask } from "../tasks";
 import { TARGETS, type Materialized } from "../targets";
+import { toolVersion } from "../../src/storage/meta";
 
 /**
  * Harness orchestrator (benchmark.md#harness, #metrics, #results--reporting).
@@ -84,6 +85,13 @@ export interface HarnessDeps {
    * defaultDeps resolves each; without-arms never call this.
    */
   mcpConfigFor(arm: Arm): string | undefined;
+  /**
+   * Relocate the just-run workspace under results/runs/<suiteStamp>/<runId>/
+   * for offline re-scoring (benchmark.md KEEP node) and return its final
+   * path, which becomes record.workspace. Grading has already read the temp
+   * workspace by this point.
+   */
+  preserveWorkspace(tempDir: string, suiteStamp: string, runId: string): string;
   now(): string;
   codeIndexVersion: string;
   taskSetHash: string;
@@ -212,6 +220,7 @@ async function pool<T>(units: (() => Promise<T>)[], workers: number): Promise<T[
  * preserves the workspace under results/runs/<timestamp>/.
  */
 export async function benchRun(plan: RunPlan, deps: HarnessDeps): Promise<RunRecord[]> {
+  const suiteStamp = deps.now(); // one timestamp groups the whole suite's runs
   const units: (() => Promise<RunRecord>)[] = [];
   for (const task of plan.tasks) {
     for (const arm of plan.arms) {
@@ -223,8 +232,10 @@ export async function benchRun(plan: RunPlan, deps: HarnessDeps): Promise<RunRec
             { task, arm, rep, model: plan.model, workspaceDir: ws.dir, indexBuildSeconds },
             deps,
           );
+          // Relocate the workspace under results/runs/ and record its final
+          // path (benchmark.md KEEP node) — grading already read the temp dir.
+          record.workspace = deps.preserveWorkspace(ws.dir, suiteStamp, record.run_id);
           appendRecord(deps.resultsDir, record);
-          // Workspace preserved (NOT cleaned) for offline re-scoring.
           return record;
         });
       }
@@ -282,9 +293,91 @@ export function defaultDeps(resultsDir: string, taskSet: BenchTask[], codeIndexV
       }
       return "npx code-index serve .";
     },
+    preserveWorkspace: (tempDir, suiteStamp, runId) => {
+      const dest = join(resolve(resultsDir), "runs", suiteStamp, runId);
+      mkdirSync(dirname(dest), { recursive: true });
+      cpSync(tempDir, dest, { recursive: true });
+      rmSync(tempDir, { recursive: true, force: true });
+      return dest;
+    },
     now: () => new Date().toISOString().replace(/[:.]/g, "-"),
     codeIndexVersion,
     taskSetHash: hashTaskSet(taskSet),
     resultsDir: resolve(resultsDir),
   };
+}
+
+// ── bench run CLI ───────────────────────────────────────────────────────────
+
+export interface BenchArgs {
+  taskSelector: string;
+  arms: Arm[];
+  runs: number;
+  workers: number;
+  model: string;
+  resultsDir: string;
+}
+
+const ALL_ARMS: Arm[] = ["claude-with", "claude-without", "codex-with", "codex-without"];
+
+/** Parse `bench run --task <ids|category|all> --arms <a,b> --runs N --workers N`. */
+export function parseBenchArgs(argv: string[]): BenchArgs {
+  const flags = new Map<string, string>();
+  for (let i = 0; i < argv.length; i += 2) {
+    if (!argv[i].startsWith("--")) throw new Error(`expected a --flag at "${argv[i]}"`);
+    const value = argv[i + 1];
+    if (value === undefined) throw new Error(`flag ${argv[i]} needs a value`);
+    flags.set(argv[i].slice(2), value);
+  }
+  const arms = (flags.get("arms") ?? ALL_ARMS.join(",")).split(",") as Arm[];
+  for (const arm of arms) {
+    if (!ALL_ARMS.includes(arm)) throw new Error(`unknown arm: ${arm}`);
+  }
+  const runs = Number(flags.get("runs") ?? 4);
+  const workers = Number(flags.get("workers") ?? 4);
+  if (!Number.isInteger(runs) || runs < 1) throw new Error("--runs must be a positive integer");
+  if (!Number.isInteger(workers) || workers < 1) throw new Error("--workers must be a positive integer");
+  return {
+    taskSelector: flags.get("task") ?? "all",
+    arms,
+    runs,
+    workers,
+    model: flags.get("model") ?? "",
+    resultsDir: flags.get("results") ?? resolve(__dirname, "..", "results"),
+  };
+}
+
+/** Resolve --task: "all" | a category name | a comma-separated id list. */
+export function resolveTasks(selector: string, all: BenchTask[] = TASKS): BenchTask[] {
+  if (selector === "all") return all;
+  if ((CATEGORIES as readonly string[]).includes(selector)) {
+    return all.filter((t) => t.category === selector);
+  }
+  const ids = new Set(selector.split(","));
+  const matched = all.filter((t) => ids.has(t.id));
+  if (matched.length === 0) throw new Error(`--task matched no tasks: ${selector}`);
+  return matched;
+}
+
+/** `bench run` entry point. */
+export async function main(argv: string[]): Promise<void> {
+  if (argv[0] !== "run") {
+    throw new Error(`usage: bench run --task <ids|category|all> --arms <arms> --runs N --workers N --model <id>`);
+  }
+  const parsed = parseBenchArgs(argv.slice(1));
+  if (parsed.model.length === 0) throw new Error("--model is required (pin the model per agent)");
+  const tasks = resolveTasks(parsed.taskSelector);
+  const deps = defaultDeps(parsed.resultsDir, TASKS, toolVersion());
+  const records = await benchRun(
+    { tasks, arms: parsed.arms, runs: parsed.runs, model: parsed.model, workers: parsed.workers },
+    deps,
+  );
+  process.stdout.write(`bench run complete: ${records.length} records appended to ${deps.resultsDir}/runs.jsonl\n`);
+}
+
+if (require.main === module) {
+  main(process.argv.slice(2)).catch((error) => {
+    process.stderr.write(`bench: ${(error as Error).message}\n`);
+    process.exit(1);
+  });
 }

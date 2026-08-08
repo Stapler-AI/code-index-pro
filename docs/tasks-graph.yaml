@@ -2135,7 +2135,7 @@ nodes:
     title: "LLM judge"
     type: dev
     milestone: M8
-    status: pending
+    status: in_progress
     implements: ["benchmark.md §Grading & judges (rung 3)"]
     spec: ["benchmark.md#grading--judges"]
     depends_on: [DEV-901, DEV-902]
