@@ -1227,7 +1227,7 @@ nodes:
     title: "Review: Seven graph queries"
     type: rev
     milestone: M4
-    status: pending
+    status: approved
     implements: ["Review gate for FR-402"]
     spec: ["ast-graph.md#query-use-cases"]
     depends_on: [DEV-402, QA-402]
