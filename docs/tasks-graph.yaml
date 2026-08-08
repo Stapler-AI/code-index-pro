@@ -438,7 +438,7 @@ nodes:
     title: "Write patterns"
     type: dev
     milestone: M1
-    status: pending
+    status: done
     implements: [FR-108]
     spec: ["schema.md#write-patterns"]
     depends_on: [DEV-106]
@@ -456,7 +456,7 @@ nodes:
     title: "Tests: write patterns & atomicity"
     type: qa
     milestone: M1
-    status: pending
+    status: done
     implements: ["FR-108 acceptance"]
     depends_on: [DEV-108, QA-000]
     scope: >-
@@ -471,7 +471,7 @@ nodes:
     title: "Review: Write patterns"
     type: rev
     milestone: M1
-    status: pending
+    status: approved
     implements: ["Review gate for FR-108"]
     spec: ["schema.md#write-patterns"]
     depends_on: [DEV-108, QA-108]
@@ -481,7 +481,7 @@ nodes:
     title: "Milestone gate: Scaffolding + storage layer"
     type: gate
     milestone: M1
-    status: pending
+    status: approved
     depends_on: [REV-000, REV-101, REV-102, REV-103, REV-104, REV-105, REV-106, REV-107, REV-108]
     done_when: "All M1 REV nodes approved."
 
