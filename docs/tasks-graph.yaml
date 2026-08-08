@@ -530,7 +530,7 @@ nodes:
     title: "Language detection"
     type: dev
     milestone: M2
-    status: pending
+    status: done
     implements: [FR-202]
     spec: ["indexing.md#language-detection"]
     depends_on: [DEV-000]
@@ -546,7 +546,7 @@ nodes:
     title: "Tests: language detection"
     type: qa
     milestone: M2
-    status: pending
+    status: done
     implements: ["FR-202 acceptance"]
     depends_on: [DEV-202, QA-000]
     scope: >-
@@ -558,7 +558,7 @@ nodes:
     title: "Review: Language detection"
     type: rev
     milestone: M2
-    status: pending
+    status: approved
     implements: ["Review gate for FR-202"]
     spec: ["indexing.md#language-detection"]
     depends_on: [DEV-202, QA-202]
