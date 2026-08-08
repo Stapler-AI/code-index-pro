@@ -2135,7 +2135,7 @@ nodes:
     title: "LLM judge"
     type: dev
     milestone: M8
-    status: in_progress
+    status: done
     implements: ["benchmark.md §Grading & judges (rung 3)"]
     spec: ["benchmark.md#grading--judges"]
     depends_on: [DEV-901, DEV-902]
@@ -2155,7 +2155,7 @@ nodes:
     title: "Tests: judge self-test & input isolation"
     type: qa
     milestone: M8
-    status: pending
+    status: done
     implements: ["benchmark.md §Grading & judges acceptance (self-testing judges)"]
     depends_on: [DEV-907, QA-000]
     scope: >-
