@@ -2,6 +2,7 @@
 
 import { existsSync, rmSync } from "node:fs";
 import { join, resolve } from "node:path";
+import { graphHooks } from "./graph/hooks";
 import { runPipeline } from "./pipeline/run";
 import { CODE_INDEX_DIR } from "./storage/database";
 import { clearReindexRequired, isReindexRequired, openHealthy } from "./storage/health";
@@ -32,7 +33,7 @@ function commandIndex(args: string[]): number {
     if (full) {
       db.exec("DELETE FROM indexed_files"); // cascades clear chunks (+FTS), symbols, edges
     }
-    const delta = runPipeline(db, repoRoot);
+    const delta = runPipeline(db, repoRoot, graphHooks);
     // A successful run over a rebuilt (empty) database IS the full re-index
     // the recovery flagged, so the flag can come down.
     if (isReindexRequired(db)) clearReindexRequired(db);
@@ -46,7 +47,7 @@ function commandIndex(args: string[]): number {
   }
 }
 
-/** `code-index stats` (FR-702). Symbols/edges read as 0 until M3 lands. */
+/** `code-index stats` (FR-702). */
 function commandStats(): number {
   const repoRoot = process.cwd();
   const { db, recovered } = openHealthy(repoRoot);

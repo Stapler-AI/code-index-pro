@@ -58,7 +58,7 @@ describe("code-index stats (FR-702)", () => {
           "m",
         );
         expect(stdout).toMatch(line);
-        expect(row.symbols).toBe(0); // reads as 0 until M3 lands
+        expect(row.symbols).toBeGreaterThan(0); // M3 graph hooks are wired into the CLI
         expect(row.chunks).toBeGreaterThan(0);
       }
 

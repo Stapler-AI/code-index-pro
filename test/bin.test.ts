@@ -46,9 +46,11 @@ describe("packaged bin (FR-705)", () => {
     expect(existsSync(join(repo.root, ".code-index", "index.db"))).toBe(true);
 
     const statsOut = runBin(repo.root, "stats");
-    expect(statsOut).toMatch(/javascript: 1 files, \d+ chunks, 0 symbols/);
-    expect(statsOut).toMatch(/typescript: 1 files, \d+ chunks, 0 symbols/);
-    expect(statsOut).toMatch(/tsx: 1 files, \d+ chunks, 0 symbols/);
+    // M3 golden counts: math.js {add, multiply}, greet.ts {Greeting, greet},
+    // component.tsx {Hello}; every fixture edge resolves.
+    expect(statsOut).toMatch(/javascript: 1 files, \d+ chunks, 2 symbols/);
+    expect(statsOut).toMatch(/typescript: 1 files, \d+ chunks, 2 symbols/);
+    expect(statsOut).toMatch(/tsx: 1 files, \d+ chunks, 1 symbols/);
     expect(statsOut).toMatch(/unresolved edges: 0/);
 
     const clearOut = runBin(repo.root, "clear");
