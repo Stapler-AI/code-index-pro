@@ -1153,7 +1153,7 @@ nodes:
     title: "Text search (FTS)"
     type: dev
     milestone: M4
-    status: pending
+    status: done
     implements: [FR-401]
     spec: ["search.md#text-search-fts5"]
     depends_on: [DEV-104, DEV-206]
@@ -1169,7 +1169,7 @@ nodes:
     title: "Tests: FTS search modes"
     type: qa
     milestone: M4
-    status: pending
+    status: done
     implements: ["FR-401 acceptance"]
     depends_on: [DEV-401, QA-000]
     scope: >-
@@ -1182,7 +1182,7 @@ nodes:
     title: "Review: Text search (FTS)"
     type: rev
     milestone: M4
-    status: pending
+    status: approved
     implements: ["Review gate for FR-401"]
     spec: ["search.md#text-search-fts5"]
     depends_on: [DEV-401, QA-401]
@@ -1192,7 +1192,7 @@ nodes:
     title: "Seven graph queries"
     type: dev
     milestone: M4
-    status: pending
+    status: done
     implements: [FR-402]
     spec: ["ast-graph.md#query-use-cases"]
     depends_on: [DEV-304]
@@ -1212,7 +1212,7 @@ nodes:
     title: "Tests: graph queries"
     type: qa
     milestone: M4
-    status: pending
+    status: done
     implements: ["FR-402 / FR-400 acceptance (each decision-matrix row answerable; a cyclic call graph terminates with correct distances; dead-exports does not flag symbols matched by unresolved edges)"]
     depends_on: [DEV-402, QA-000]
     scope: >-
