@@ -34,10 +34,37 @@ export interface ToolDefinition {
   description: string;
   inputSchema: Record<string, unknown>;
   handler: (args: Record<string, unknown>, ctx: ServerContext) => unknown;
+  /**
+   * false exempts the tool from the index_age_seconds stamp (FR-604) —
+   * search_structural reads the live working tree, not the index.
+   */
+  indexBacked?: boolean;
 }
 
 /** The 11-tool catalog lives in tools.ts (FR-602). */
 const TOOLS: ToolDefinition[] = TOOL_CATALOG;
+
+/** Seconds since the newest last_indexed row; null before any indexing. */
+export function indexAgeSeconds(db: Database): number | null {
+  const row = db.prepare("SELECT MAX(last_indexed) AS t FROM indexed_files").get() as { t: string | null };
+  if (row.t === null) return null;
+  return Math.max(0, Math.round((Date.now() - Date.parse(row.t)) / 1000));
+}
+
+/**
+ * Run one tool and stamp index-backed responses with index_age_seconds
+ * (FR-604) — the agent's staleness signal. search_structural (live working
+ * tree) is exempt via indexBacked: false.
+ */
+export function executeTool(
+  tool: ToolDefinition,
+  args: Record<string, unknown>,
+  context: ServerContext,
+): unknown {
+  const payload = tool.handler(args, context);
+  if (tool.indexBacked === false) return payload;
+  return { ...(payload as Record<string, unknown>), index_age_seconds: indexAgeSeconds(context.db) };
+}
 
 export interface CodeIndexServer {
   server: Server;
@@ -73,7 +100,7 @@ export function createCodeIndexServer(repoRoot: string): CodeIndexServer {
       };
     }
     try {
-      const payload = tool.handler(request.params.arguments ?? {}, context);
+      const payload = executeTool(tool, request.params.arguments ?? {}, context);
       return { content: [{ type: "text", text: JSON.stringify(payload) }] };
     } catch (error) {
       return {

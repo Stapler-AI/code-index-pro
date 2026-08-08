@@ -208,6 +208,8 @@ const searchStructural: ToolDefinition = {
     },
     additionalProperties: false,
   },
+  // Live working tree, not the index — exempt from index_age_seconds (FR-604).
+  indexBacked: false,
   handler: () => {
     // FR-503 stub until DEV-501 lands: distinguishable missing-prerequisite
     // error naming the prerequisite and how to install it.
@@ -332,6 +334,17 @@ const whoCallsTool: ToolDefinition = {
     const { results, truncated } = whoCalls(ctx.db, symbol.id, symbol.name, {
       limit: optionalPositiveInt(args, "limit"),
     });
+    // Confidence signal (FR-604): unresolved inbound name-matches in the
+    // traversed region, independent of the limit cut.
+    const unresolvedEdges = (
+      ctx.db
+        .prepare(
+          `SELECT COUNT(*) AS n FROM edges
+           WHERE edge_type IN ('calls', 'references')
+             AND target_symbol_id IS NULL AND target_name = ?`,
+        )
+        .get(symbol.name) as { n: number }
+    ).n;
     return {
       symbol,
       results: results.map((c) => ({
@@ -344,6 +357,7 @@ const whoCallsTool: ToolDefinition = {
         ...(c.resolved ? {} : { resolved: false }),
       })),
       truncated,
+      unresolved_edges: unresolvedEdges,
     };
   },
 };
@@ -377,11 +391,25 @@ const getDependenciesTool: ToolDefinition = {
       const known = ctx.db.prepare("SELECT 1 FROM indexed_files WHERE relative_path = ?").get(path);
       if (!known) throw new ToolError(`file not in index: ${path}`);
       const { results, truncated } = getFileDependencies(ctx.db, path, { limit });
-      return { source: { path }, results: results.map(toRow), truncated };
+      const unresolvedEdges = (
+        ctx.db
+          .prepare(
+            `SELECT COUNT(*) AS n FROM edges e JOIN indexed_files f ON f.id = e.source_file_id
+             WHERE f.relative_path = ? AND e.source_symbol_id IS NULL
+               AND e.edge_type != 'exports' AND e.target_symbol_id IS NULL`,
+          )
+          .get(path) as { n: number }
+      ).n;
+      return { source: { path }, results: results.map(toRow), truncated, unresolved_edges: unresolvedEdges };
     }
     const symbol = resolveSymbolRef(args, ctx);
     const { results, truncated } = getDependencies(ctx.db, symbol.id, { limit });
-    return { source: symbol, results: results.map(toRow), truncated };
+    const unresolvedEdges = (
+      ctx.db
+        .prepare("SELECT COUNT(*) AS n FROM edges WHERE source_symbol_id = ? AND target_symbol_id IS NULL")
+        .get(symbol.id) as { n: number }
+    ).n;
+    return { source: symbol, results: results.map(toRow), truncated, unresolved_edges: unresolvedEdges };
   },
 };
 
@@ -418,7 +446,17 @@ const impactOfChangeTool: ToolDefinition = {
       });
       byFile.set(row.path, group);
     }
-    return { symbol, files: [...byFile.values()], truncated };
+    // Confidence signal (FR-604): unresolved edges naming any member of the
+    // traversed closure (root included) — potential missed paths.
+    const names = new Set<string>([symbol.name, ...results.map((r) => r.name)]);
+    const countByName = ctx.db.prepare(
+      `SELECT COUNT(*) AS n FROM edges
+       WHERE edge_type IN ('calls', 'references', 'extends', 'implements')
+         AND target_symbol_id IS NULL AND target_name = ?`,
+    );
+    let unresolvedEdges = 0;
+    for (const name of names) unresolvedEdges += (countByName.get(name) as { n: number }).n;
+    return { symbol, files: [...byFile.values()], truncated, unresolved_edges: unresolvedEdges };
   },
 };
 
@@ -434,10 +472,20 @@ const moduleMapTool: ToolDefinition = {
     additionalProperties: false,
   },
   handler: (args, ctx) => {
+    const pathPrefix = optionalString(args, "path_prefix") ?? null;
     const { results, truncated } = moduleMap(ctx.db, {
-      pathPrefix: optionalString(args, "path_prefix"),
+      pathPrefix: pathPrefix ?? undefined,
       limit: optionalPositiveInt(args, "limit"),
     });
+    const unresolvedEdges = (
+      ctx.db
+        .prepare(
+          `SELECT COUNT(*) AS n FROM edges e JOIN indexed_files f ON f.id = e.source_file_id
+           WHERE e.edge_type = 'imports' AND e.target_symbol_id IS NULL
+             AND (? IS NULL OR substr(f.relative_path, 1, length(?)) = ?)`,
+        )
+        .get(pathPrefix, pathPrefix, pathPrefix) as { n: number }
+    ).n;
     return {
       results: results.map((r) => ({
         from_file: r.fromFile,
@@ -445,6 +493,7 @@ const moduleMapTool: ToolDefinition = {
         import_count: r.importCount,
       })),
       truncated,
+      unresolved_edges: unresolvedEdges,
     };
   },
 };

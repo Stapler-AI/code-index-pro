@@ -1447,7 +1447,7 @@ nodes:
     title: "Staleness & confidence signals"
     type: dev
     milestone: M5
-    status: pending
+    status: done
     implements: [FR-604]
     spec: ["mcp-server.md#error-and-staleness-behavior"]
     depends_on: [DEV-602]
@@ -1464,7 +1464,7 @@ nodes:
     title: "Tests: signals present"
     type: qa
     milestone: M5
-    status: pending
+    status: done
     implements: ["FR-604 acceptance"]
     depends_on: [DEV-604, QA-000]
     scope: >-
@@ -1478,7 +1478,7 @@ nodes:
     title: "Review: Staleness & confidence signals"
     type: rev
     milestone: M5
-    status: pending
+    status: approved
     implements: ["Review gate for FR-604"]
     spec: ["mcp-server.md#error-and-staleness-behavior"]
     depends_on: [DEV-604, QA-604]
@@ -1488,7 +1488,7 @@ nodes:
     title: "CLI: serve"
     type: dev
     milestone: M5
-    status: pending
+    status: done
     implements: [FR-704]
     depends_on: [DEV-601, DEV-705]
     verified_by: QA-704
@@ -1502,7 +1502,7 @@ nodes:
     title: "Tests: serve & registration"
     type: qa
     milestone: M5
-    status: pending
+    status: done
     implements: ["FR-704 / FR-600 acceptance (the server registers via .mcp.json / claude mcp add as shown)"]
     depends_on: [DEV-704, QA-000]
     scope: >-
