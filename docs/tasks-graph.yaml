@@ -653,7 +653,7 @@ nodes:
     title: "Stale pruning"
     type: dev
     milestone: M2
-    status: pending
+    status: done
     implements: [FR-205]
     spec: ["indexing.md#change-detection"]
     depends_on: [DEV-108, DEV-201]
@@ -669,7 +669,7 @@ nodes:
     title: "Tests: stale pruning"
     type: qa
     milestone: M2
-    status: pending
+    status: done
     implements: ["FR-205 acceptance", "FR-200 acceptance (deleting a file removes all its rows via cascade)"]
     depends_on: [DEV-205, QA-000]
     scope: >-
@@ -681,7 +681,7 @@ nodes:
     title: "Review: Stale pruning"
     type: rev
     milestone: M2
-    status: pending
+    status: approved
     implements: ["Review gate for FR-205"]
     spec: ["indexing.md#change-detection"]
     depends_on: [DEV-205, QA-205]
