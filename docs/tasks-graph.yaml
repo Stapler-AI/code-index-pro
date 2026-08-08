@@ -691,7 +691,7 @@ nodes:
     title: "Pipeline orchestration"
     type: dev
     milestone: M2
-    status: pending
+    status: done
     implements: [FR-206]
     spec: ["indexing.md#pipeline-overview"]
     depends_on: [DEV-201, DEV-202, DEV-203, DEV-204, DEV-205]
@@ -709,7 +709,7 @@ nodes:
     title: "Tests: incremental pipeline"
     type: qa
     milestone: M2
-    status: pending
+    status: done
     implements: ["FR-206 acceptance (first run indexes all eligible files; immediate second run writes zero rows; editing one file re-indexes only it)"]
     depends_on: [DEV-206, QA-000]
     scope: >-
@@ -723,7 +723,7 @@ nodes:
     title: "Review: Pipeline orchestration"
     type: rev
     milestone: M2
-    status: pending
+    status: approved
     implements: ["Review gate for FR-206"]
     spec: ["indexing.md#pipeline-overview"]
     depends_on: [DEV-206, QA-206]
