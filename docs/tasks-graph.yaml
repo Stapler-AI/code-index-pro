@@ -843,7 +843,7 @@ nodes:
     title: "Package bin wiring"
     type: dev
     milestone: M2
-    status: pending
+    status: done
     implements: [FR-705]
     depends_on: [DEV-000, DEV-701]
     verified_by: QA-705
@@ -858,7 +858,7 @@ nodes:
     title: "Tests: bin invocation"
     type: qa
     milestone: M2
-    status: pending
+    status: done
     implements: ["FR-705 acceptance (the three README quick-start commands work against a real repo)"]
     depends_on: [DEV-705, QA-000]
     scope: >-
@@ -870,7 +870,7 @@ nodes:
     title: "Review: Package bin wiring"
     type: rev
     milestone: M2
-    status: pending
+    status: approved
     implements: ["Review gate for FR-705"]
     depends_on: [DEV-705, QA-705]
     done_when: "Review approved with no unresolved findings."
@@ -879,7 +879,7 @@ nodes:
     title: "Milestone gate: Indexer pipeline + basic CLI"
     type: gate
     milestone: M2
-    status: pending
+    status: approved
     depends_on: [REV-201, REV-202, REV-203, REV-204, REV-205, REV-206, REV-701, REV-702, REV-703, REV-705]
     done_when: "All M2 REV nodes approved."
 

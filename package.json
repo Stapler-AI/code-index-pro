@@ -2,12 +2,15 @@
   "name": "code-index-dev",
   "version": "1.0.0",
   "description": "Code indexing tools for AI agents",
-  "main": "dist/index.js",
   "bin": {
     "code-index": "dist/cli.js"
   },
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "build": "tsc -p tsconfig.json",
+    "prepare": "tsc -p tsconfig.json",
     "test": "vitest run",
     "test:watch": "vitest"
   },
