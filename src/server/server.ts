@@ -5,8 +5,9 @@ import type { Database } from "better-sqlite3";
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { CallToolRequestSchema, ListToolsRequestSchema } from "@modelcontextprotocol/sdk/types.js";
-import { getRecoveryEvents, openHealthy } from "../storage/health";
+import { openHealthy } from "../storage/health";
 import { toolVersion } from "../storage/meta";
+import { TOOL_CATALOG } from "./tools";
 
 /**
  * MCP server shell (FR-601, mcp-server.md). Stdio transport; one instance
@@ -35,41 +36,8 @@ export interface ToolDefinition {
   handler: (args: Record<string, unknown>, ctx: ServerContext) => unknown;
 }
 
-/** index_status (FR-602 catalog row): repo orientation in ~50 tokens. */
-const indexStatusTool: ToolDefinition = {
-  name: "index_status",
-  description:
-    "Index statistics: files/chunks/symbols per language, unresolved-edge count, last index time, recovery notices.",
-  inputSchema: { type: "object", properties: {}, additionalProperties: false },
-  handler: (_args, ctx) => {
-    const languages = ctx.db
-      .prepare(
-        `SELECT f.language,
-                COUNT(DISTINCT f.id) AS files,
-                (SELECT COUNT(*) FROM code_chunks c WHERE c.file_id IN
-                   (SELECT id FROM indexed_files WHERE language = f.language)) AS chunks,
-                (SELECT COUNT(*) FROM symbols s WHERE s.file_id IN
-                   (SELECT id FROM indexed_files WHERE language = f.language)) AS symbols
-         FROM indexed_files f GROUP BY f.language ORDER BY f.language`,
-      )
-      .all();
-    const unresolvedEdges = (
-      ctx.db.prepare("SELECT COUNT(*) AS n FROM edges WHERE target_symbol_id IS NULL").get() as { n: number }
-    ).n;
-    const lastIndexTime = (
-      ctx.db.prepare("SELECT MAX(last_indexed) AS t FROM indexed_files").get() as { t: string | null }
-    ).t;
-    return {
-      languages,
-      unresolved_edges: unresolvedEdges,
-      last_index_time: lastIndexTime,
-      recovery_events: getRecoveryEvents(ctx.db),
-    };
-  },
-};
-
-/** The tool catalog; DEV-602 grows this to the full 11. */
-export const TOOLS: ToolDefinition[] = [indexStatusTool];
+/** The 11-tool catalog lives in tools.ts (FR-602). */
+const TOOLS: ToolDefinition[] = TOOL_CATALOG;
 
 export interface CodeIndexServer {
   server: Server;
@@ -81,6 +49,10 @@ export interface CodeIndexServer {
 
 export function createCodeIndexServer(repoRoot: string): CodeIndexServer {
   const { db, recovered } = openHealthy(repoRoot);
+  // The background reindex child writes while this connection serves; WAL
+  // permits one writer, so waits (e.g. the reindex tool during child writes)
+  // must block briefly instead of throwing SQLITE_BUSY.
+  db.pragma("busy_timeout = 5000");
   const context: ServerContext = { db, repoRoot, recovered };
 
   const server = new Server(

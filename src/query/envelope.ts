@@ -36,11 +36,15 @@ export function envelopeFromSearchHit(hit: SearchHit): ResultEnvelope {
 /**
  * Symbol tuple (find_symbol, who_calls, impact, hierarchy, dead exports) →
  * envelope: the signature is the preview (name when signature is null).
+ * Tuples carrying a full span (endLine) produce a real range; call-site rows
+ * (who_calls) legitimately collapse to a single line.
  */
-export function envelopeFromSymbol(tuple: SymbolTuple & { resolved?: boolean }): ResultEnvelope {
+export function envelopeFromSymbol(
+  tuple: SymbolTuple & { resolved?: boolean; endLine?: number },
+): ResultEnvelope {
   const envelope: ResultEnvelope = {
     path: tuple.path,
-    lines: [tuple.line, tuple.line],
+    lines: [tuple.line, tuple.endLine ?? tuple.line],
     preview: tuple.signature ?? tuple.name,
     id: tuple.id,
   };

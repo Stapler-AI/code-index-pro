@@ -27,6 +27,11 @@ export interface SymbolTuple {
   line: number;
 }
 
+/** Tuple carrying the full declaration span (find_symbol, impact rows). */
+export interface SymbolSpanTuple extends SymbolTuple {
+  endLine: number;
+}
+
 /** Who calls X (direct): callers via calls/references edges. */
 export interface CallerRow extends SymbolTuple {
   /** false when the edge matched by target_name only (unresolved hint). */
@@ -70,6 +75,30 @@ export interface DependencyRow {
   target: { id: number; kind: string; signature: string | null; path: string } | null;
 }
 
+interface RawDependencyRow {
+  edgeType: string;
+  targetName: string;
+  targetModule: string | null;
+  line: number;
+  targetId: number | null;
+  targetKind: string | null;
+  targetSignature: string | null;
+  targetPath: string | null;
+}
+
+function mapDependencyRows(rows: RawDependencyRow[]): DependencyRow[] {
+  return rows.map((r) => ({
+    edgeType: r.edgeType,
+    targetName: r.targetName,
+    targetModule: r.targetModule,
+    line: r.line,
+    target:
+      r.targetId === null
+        ? null
+        : { id: r.targetId, kind: r.targetKind!, signature: r.targetSignature, path: r.targetPath! },
+  }));
+}
+
 export function getDependencies(
   db: Database,
   symbolId: number,
@@ -89,33 +118,12 @@ export function getDependencies(
        ORDER BY e.line, e.id
        LIMIT ?`,
     )
-    .all(symbolId, limit + 1) as {
-    edgeType: string;
-    targetName: string;
-    targetModule: string | null;
-    line: number;
-    targetId: number | null;
-    targetKind: string | null;
-    targetSignature: string | null;
-    targetPath: string | null;
-  }[];
-  return capResults(
-    rows.map((r) => ({
-      edgeType: r.edgeType,
-      targetName: r.targetName,
-      targetModule: r.targetModule,
-      line: r.line,
-      target:
-        r.targetId === null
-          ? null
-          : { id: r.targetId, kind: r.targetKind!, signature: r.targetSignature, path: r.targetPath! },
-    })),
-    limit,
-  );
+    .all(symbolId, limit + 1) as RawDependencyRow[];
+  return capResults(mapDependencyRows(rows), limit);
 }
 
 /** Impact of changing X: transitive inbound closure, cycle-safe, depth-capped. */
-export interface ImpactRow extends SymbolTuple {
+export interface ImpactRow extends SymbolSpanTuple {
   distance: number;
 }
 
@@ -145,7 +153,7 @@ export function impactOfChange(
            AND impact.depth < ?
        )
        SELECT s.id, s.name, s.kind, s.signature, f.relative_path AS path,
-              s.start_line AS line, MIN(impact.depth) AS distance
+              s.start_line AS line, s.end_line AS endLine, MIN(impact.depth) AS distance
        FROM impact
        JOIN symbols s       ON s.id = impact.id
        JOIN indexed_files f ON f.id = s.file_id
@@ -165,8 +173,14 @@ export interface ModuleMapRow {
   importCount: number;
 }
 
-export function moduleMap(db: Database, options: LimitOption = {}): CappedResults<ModuleMapRow> {
+export interface ModuleMapOptions extends LimitOption {
+  /** Restrict to source files whose relative_path starts with this prefix. */
+  pathPrefix?: string;
+}
+
+export function moduleMap(db: Database, options: ModuleMapOptions = {}): CappedResults<ModuleMapRow> {
   const limit = options.limit ?? GRAPH_DEFAULT_LIMIT;
+  const pathPrefix = options.pathPrefix ?? null;
   const rows = db
     .prepare(
       `SELECT f.relative_path AS fromFile,
@@ -177,11 +191,12 @@ export function moduleMap(db: Database, options: LimitOption = {}): CappedResult
        LEFT JOIN symbols t         ON t.id = e.target_symbol_id
        LEFT JOIN indexed_files tf  ON tf.id = t.file_id
        WHERE e.edge_type = 'imports'
+         AND (? IS NULL OR substr(f.relative_path, 1, length(?)) = ?)
        GROUP BY fromFile, toModule
        ORDER BY fromFile, toModule
        LIMIT ?`,
     )
-    .all(limit + 1) as ModuleMapRow[];
+    .all(pathPrefix, pathPrefix, pathPrefix, limit + 1) as ModuleMapRow[];
   return capResults(rows, limit);
 }
 
@@ -286,17 +301,64 @@ export function fileOutline(
   );
 }
 
+export interface FindSymbolOptions extends LimitOption {
+  /** Restrict to one symbol kind (function, class, method, …). */
+  kind?: string;
+  /** Restrict to files whose relative_path starts with this prefix. */
+  pathPrefix?: string;
+}
+
 /** Name lookup backing find_symbol ("Where is X defined?" decision-matrix row). */
-export function findSymbol(db: Database, name: string, options: LimitOption = {}): CappedResults<SymbolTuple> {
+export function findSymbol(
+  db: Database,
+  name: string,
+  options: FindSymbolOptions = {},
+): CappedResults<SymbolSpanTuple> {
   const limit = options.limit ?? GRAPH_DEFAULT_LIMIT;
+  const kind = options.kind ?? null;
+  const pathPrefix = options.pathPrefix ?? null;
   const rows = db
     .prepare(
-      `SELECT s.id, s.name, s.kind, s.signature, f.relative_path AS path, s.start_line AS line
+      `SELECT s.id, s.name, s.kind, s.signature, f.relative_path AS path,
+              s.start_line AS line, s.end_line AS endLine
        FROM symbols s JOIN indexed_files f ON f.id = s.file_id
        WHERE s.name = ?
+         AND (? IS NULL OR s.kind = ?)
+         AND (? IS NULL OR substr(f.relative_path, 1, length(?)) = ?)
        ORDER BY f.relative_path, s.start_line
        LIMIT ?`,
     )
-    .all(name, limit + 1) as SymbolTuple[];
+    .all(name, kind, kind, pathPrefix, pathPrefix, pathPrefix, limit + 1) as SymbolSpanTuple[];
   return capResults(rows, limit);
+}
+
+/**
+ * File-scope outbound edges (get_dependencies by path): imports and other
+ * edges whose source is the file itself rather than a symbol. Self-referential
+ * exports edges are excluded — they declare, they don't depend (same
+ * reasoning as deadExports).
+ */
+export function getFileDependencies(
+  db: Database,
+  relativePath: string,
+  options: LimitOption = {},
+): CappedResults<DependencyRow> {
+  const limit = options.limit ?? GRAPH_DEFAULT_LIMIT;
+  const rows = db
+    .prepare(
+      `SELECT e.edge_type AS edgeType, e.target_name AS targetName,
+              e.target_module AS targetModule, e.line,
+              t.id AS targetId, t.kind AS targetKind, t.signature AS targetSignature,
+              tf.relative_path AS targetPath
+       FROM edges e
+       JOIN indexed_files f       ON f.id = e.source_file_id
+       LEFT JOIN symbols t        ON t.id = e.target_symbol_id
+       LEFT JOIN indexed_files tf ON tf.id = t.file_id
+       WHERE f.relative_path = ? AND e.source_symbol_id IS NULL
+         AND e.edge_type != 'exports'
+       ORDER BY e.line, e.id
+       LIMIT ?`,
+    )
+    .all(relativePath, limit + 1) as Parameters<typeof mapDependencyRows>[0];
+  return capResults(mapDependencyRows(rows), limit);
 }

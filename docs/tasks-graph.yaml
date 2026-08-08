@@ -1364,7 +1364,7 @@ nodes:
     title: "Tool catalog (11 tools)"
     type: dev
     milestone: M5
-    status: pending
+    status: done
     implements: [FR-602]
     spec: ["mcp-server.md#tool-catalog"]
     depends_on: [DEV-601, DEV-404]
@@ -1383,7 +1383,7 @@ nodes:
     title: "Tests: catalog & worked example"
     type: qa
     milestone: M5
-    status: pending
+    status: done
     implements: ["FR-602 / FR-600 acceptance (the worked rename session executes end-to-end with responses matching the documented shapes)"]
     depends_on: [DEV-602, QA-000]
     scope: >-
@@ -1398,7 +1398,7 @@ nodes:
     title: "Review: Tool catalog (11 tools)"
     type: rev
     milestone: M5
-    status: pending
+    status: approved
     implements: ["Review gate for FR-602"]
     spec: ["mcp-server.md#tool-catalog"]
     depends_on: [DEV-602, QA-602]
@@ -1408,7 +1408,7 @@ nodes:
     title: "Design rules enforcement"
     type: dev
     milestone: M5
-    status: pending
+    status: in_progress
     implements: [FR-603]
     spec: ["mcp-server.md#design-rules"]
     depends_on: [DEV-602]
