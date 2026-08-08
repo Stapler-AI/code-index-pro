@@ -96,9 +96,18 @@ CREATE TRIGGER chunks_ad AFTER DELETE ON code_chunks BEGIN
 END;
 `;
 
+/** Meta key/value table (schema.md#meta-table). */
+export const META_DDL = `
+CREATE TABLE meta (
+  key   TEXT PRIMARY KEY,
+  value TEXT NOT NULL
+);
+`;
+
 /** Apply the schema to a fresh database. (Interim entry point until DEV-106's migration runner owns this DDL as migration 1.) */
 export function applySchema(db: Database): void {
   db.exec(CORE_TABLES_DDL);
   db.exec(GRAPH_TABLES_DDL);
   db.exec(FTS_DDL);
+  db.exec(META_DDL);
 }

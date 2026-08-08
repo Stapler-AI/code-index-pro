@@ -312,7 +312,7 @@ nodes:
     title: "Meta table"
     type: dev
     milestone: M1
-    status: pending
+    status: done
     implements: [FR-105]
     spec: ["schema.md#meta-table"]
     depends_on: [DEV-102]
@@ -329,7 +329,7 @@ nodes:
     title: "Tests: meta population & mismatch detection"
     type: qa
     milestone: M1
-    status: pending
+    status: done
     implements: ["FR-105 acceptance"]
     depends_on: [DEV-105, QA-000]
     scope: >-
@@ -342,7 +342,7 @@ nodes:
     title: "Review: Meta table"
     type: rev
     milestone: M1
-    status: pending
+    status: approved
     implements: ["Review gate for FR-105"]
     spec: ["schema.md#meta-table"]
     depends_on: [DEV-105, QA-105]
