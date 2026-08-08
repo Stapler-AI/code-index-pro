@@ -1237,7 +1237,7 @@ nodes:
     title: "Result envelope"
     type: dev
     milestone: M4
-    status: pending
+    status: done
     implements: [FR-403]
     spec: ["search.md#result-normalization"]
     depends_on: [DEV-401, DEV-402]
@@ -1253,7 +1253,7 @@ nodes:
     title: "Tests: envelope conformance"
     type: qa
     milestone: M4
-    status: pending
+    status: done
     implements: ["FR-403 acceptance"]
     depends_on: [DEV-403, QA-000]
     scope: >-
@@ -1266,7 +1266,7 @@ nodes:
     title: "Review: Result envelope"
     type: rev
     milestone: M4
-    status: pending
+    status: approved
     implements: ["Review gate for FR-403"]
     spec: ["search.md#result-normalization"]
     depends_on: [DEV-403, QA-403]
@@ -1276,7 +1276,7 @@ nodes:
     title: "Caps & truncation"
     type: dev
     milestone: M4
-    status: pending
+    status: in_progress
     implements: [FR-404]
     depends_on: [DEV-403]
     verified_by: QA-404
