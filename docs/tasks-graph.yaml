@@ -491,7 +491,7 @@ nodes:
     title: "File discovery"
     type: dev
     milestone: M2
-    status: pending
+    status: done
     implements: [FR-201]
     spec: ["indexing.md#file-discovery"]
     depends_on: [DEV-000]
@@ -507,7 +507,7 @@ nodes:
     title: "Tests: discovery (git + fallback)"
     type: qa
     milestone: M2
-    status: pending
+    status: done
     implements: ["FR-201 acceptance", "FR-200 acceptance (a non-git directory indexes via the fallback walker)"]
     depends_on: [DEV-201, QA-000]
     scope: >-
@@ -520,7 +520,7 @@ nodes:
     title: "Review: File discovery"
     type: rev
     milestone: M2
-    status: pending
+    status: approved
     implements: ["Review gate for FR-201"]
     spec: ["indexing.md#file-discovery"]
     depends_on: [DEV-201, QA-201]
