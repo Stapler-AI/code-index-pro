@@ -1896,7 +1896,7 @@ nodes:
     title: "Review: Benchmark scaffolding"
     type: rev
     milestone: M8
-    status: pending
+    status: approved
     implements: ["Review gate for benchmark.md §Task model, §Targets & fixtures"]
     spec: ["benchmark.md#task-model", "benchmark.md#targets--fixtures"]
     depends_on: [DEV-901, QA-901]
@@ -1906,7 +1906,7 @@ nodes:
     title: "Deterministic graders & edit-tier checks"
     type: dev
     milestone: M8
-    status: in_progress
+    status: done
     implements: ["benchmark.md §Two tiers, two grading families", "benchmark.md §Grading & judges (rungs 1-2)"]
     spec: ["benchmark.md#two-tiers-two-grading-families", "benchmark.md#grading--judges"]
     depends_on: [DEV-901]
@@ -1926,7 +1926,7 @@ nodes:
     title: "Tests: matchers & diff assertions"
     type: qa
     milestone: M8
-    status: pending
+    status: done
     implements: ["benchmark.md §Grading & judges acceptance (deterministic-first)"]
     depends_on: [DEV-902, QA-000]
     scope: >-
@@ -1940,7 +1940,7 @@ nodes:
     title: "Review: Deterministic graders & edit-tier checks"
     type: rev
     milestone: M8
-    status: pending
+    status: approved
     implements: ["Review gate for benchmark.md §Two tiers, §Grading & judges"]
     spec: ["benchmark.md#two-tiers-two-grading-families", "benchmark.md#grading--judges"]
     depends_on: [DEV-902, QA-902]
@@ -1950,7 +1950,7 @@ nodes:
     title: "Hand-authored seed task set"
     type: dev
     milestone: M8
-    status: pending
+    status: in_progress
     implements: ["benchmark.md §Task generation (source 1)", "benchmark.md §Example task"]
     spec: ["benchmark.md#task-generation", "benchmark.md#example-task-annotated"]
     depends_on: [DEV-901, DEV-902]

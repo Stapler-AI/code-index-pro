@@ -6,5 +6,6 @@
     "declaration": false,
     "sourceMap": false
   },
-  "include": ["benchmarks/**/*", "src/**/*", "test/**/*"]
+  "include": ["benchmarks/**/*", "src/**/*", "test/**/*"],
+  "exclude": ["benchmarks/fixtures", "node_modules", "dist"]
 }

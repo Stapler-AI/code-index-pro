@@ -1,4 +1,6 @@
 import { execFileSync } from "node:child_process";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import type { ExactGrader, PathLineSetGrader, SetGrader, TestDiffGrader } from "../../tasks";
 
 /**
@@ -66,15 +68,26 @@ function parsePathLine(raw: string): PathLine | null {
 
 /**
  * Rung 1c: path:line-set match with ± line-slop tolerance. Greedy one-to-one
- * matching: each expected entry consumes at most one answered entry on the
- * same path within the slop.
+ * matching after sorting both sides by (path, line) — the sort makes the
+ * greedy pass optimal, so overlapping slop windows on one path can't
+ * under-credit. Each expected entry consumes at most one answered entry.
+ *
+ * Parse tolerance: answer lines that are not `path:line` are counted as
+ * (unmatchable) extras against precision, so verbose prose padding a correct
+ * list still costs F1 — no free leniency.
  */
 export function gradePathLineSet(answer: string, grader: PathLineSetGrader): GradeResult {
   const slop = grader.lineSlop ?? DEFAULT_LINE_SLOP;
-  const answered = answerLines(answer)
+  const rawAnswers = answerLines(answer);
+  const parsedAnswers = rawAnswers.map(parsePathLine);
+  const unparsable = parsedAnswers.filter((p) => p === null).length;
+  const byPathLine = (a: PathLine, b: PathLine): number =>
+    a.path === b.path ? a.line - b.line : a.path < b.path ? -1 : 1;
+  const answered = parsedAnswers.filter((p): p is PathLine => p !== null).sort(byPathLine);
+  const expected = grader.key
     .map(parsePathLine)
-    .filter((p): p is PathLine => p !== null);
-  const expected = grader.key.map(parsePathLine).filter((p): p is PathLine => p !== null);
+    .filter((p): p is PathLine => p !== null)
+    .sort(byPathLine);
 
   const used = new Set<number>();
   let matched = 0;
@@ -93,7 +106,8 @@ export function gradePathLineSet(answer: string, grader: PathLineSetGrader): Gra
   answered.forEach((got, i) => {
     if (!used.has(i)) notes.push(`extra: ${got.raw}`);
   });
-  const score = f1(matched, answered.length, expected.length);
+  // Unparsable answer lines count against precision (extras in the denominator).
+  const score = f1(matched, answered.length + unparsable, expected.length);
   return { score, notes: score === 1 ? [] : notes };
 }
 
@@ -110,7 +124,7 @@ export function workspaceDiff(workspaceDir: string): string {
     .split("\n")
     .filter((l) => l.length > 0);
   for (const file of untracked) {
-    const content = execFileSync("cat", [file], { cwd: workspaceDir, encoding: "utf8" });
+    const content = readFileSync(join(workspaceDir, file), "utf8");
     diff += `\n+++ b/${file} (untracked)\n${content
       .split("\n")
       .map((l) => `+${l}`)
@@ -131,7 +145,7 @@ export function workspaceContent(workspaceDir: string): string {
     ...run("ls-files", "--others", "--exclude-standard").split("\n"),
   ].filter((l) => l.length > 0);
   return files
-    .map((file) => `=== ${file} ===\n${execFileSync("cat", [file], { cwd: workspaceDir, encoding: "utf8" })}`)
+    .map((file) => `=== ${file} ===\n${readFileSync(join(workspaceDir, file), "utf8")}`)
     .join("\n");
 }
 
@@ -148,6 +162,11 @@ export function workspaceContent(workspaceDir: string): string {
 export function gradeEdit(workspaceDir: string, grader: TestDiffGrader): GradeResult {
   const notes: string[] = [];
 
+  // Capture the agent's edit BEFORE running the test subset, so a test that
+  // writes non-gitignored artifacts can't pollute the diff/tree assertions.
+  const diff = workspaceDiff(workspaceDir);
+  const tree = workspaceContent(workspaceDir);
+
   const [command, ...args] = grader.testCommand;
   try {
     execFileSync(command, args, { cwd: workspaceDir, stdio: ["ignore", "pipe", "pipe"], timeout: 120_000 });
@@ -155,11 +174,9 @@ export function gradeEdit(workspaceDir: string, grader: TestDiffGrader): GradeRe
     notes.push(`test subset failed: ${(error as Error).message.split("\n")[0]}`);
   }
 
-  const diff = workspaceDiff(workspaceDir);
   for (const source of grader.mustMatch) {
     if (!new RegExp(source, "m").test(diff)) notes.push(`must-match absent from diff: /${source}/`);
   }
-  const tree = workspaceContent(workspaceDir);
   for (const source of grader.mustNotMatch) {
     if (new RegExp(source, "m").test(tree)) notes.push(`must-not-match present in workspace: /${source}/`);
   }
