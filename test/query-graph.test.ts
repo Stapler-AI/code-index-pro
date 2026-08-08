@@ -2,19 +2,22 @@ import type { Database } from "better-sqlite3";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { graphHooks } from "../src/graph/hooks";
 import { runPipeline } from "../src/pipeline/run";
-import {
-  classHierarchy,
-  deadExports,
-  fileOutline,
-  findSymbol,
-  getDependencies,
-  impactOfChange,
-  moduleMap,
-  whoCalls,
-} from "../src/query/graph";
+import * as graph from "../src/query/graph";
 import { openDatabase } from "../src/storage/database";
 import { runMigrations } from "../src/storage/migrations";
 import { buildFixtureRepo, FixtureRepo } from "./helpers/fixtures";
+
+// Row-content assertions live here; truncation reporting is QA-404's.
+const whoCalls = (db: Database, id: number, name: string) => graph.whoCalls(db, id, name).results;
+const getDependencies = (db: Database, id: number) => graph.getDependencies(db, id).results;
+const impactOfChange = (db: Database, id: number, maxDepth?: number) =>
+  graph.impactOfChange(db, id, { maxDepth }).results;
+const moduleMap = (db: Database) => graph.moduleMap(db).results;
+const classHierarchy = (db: Database, id: number, direction: "ancestors" | "descendants") =>
+  graph.classHierarchy(db, id, direction).results;
+const deadExports = (db: Database) => graph.deadExports(db).results;
+const fileOutline = (db: Database, path: string) => graph.fileOutline(db, path).results;
+const findSymbol = (db: Database, name: string) => graph.findSymbol(db, name).results;
 
 function symbolId(db: Database, relativePath: string, name: string): number {
   const row = db

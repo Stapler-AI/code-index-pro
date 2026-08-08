@@ -1,4 +1,5 @@
 import type { Database } from "better-sqlite3";
+import { capResults, CappedResults } from "./caps";
 
 /**
  * Text search (FR-401, search.md#text-search-fts5): FTS5 MATCH over chunk
@@ -41,8 +42,13 @@ const SNIPPET_ARGS = { column: 0, open: "[", close: "]", ellipsis: "…", tokens
 /**
  * Run an FTS5 query. A syntactically invalid FTS query throws better-sqlite3's
  * SqliteError (fts5: syntax error…) — callers surface that as a bad request.
+ * Fetches limit+1 rows so the response can report truncation (FR-404).
  */
-export function searchCode(db: Database, query: string, options: SearchCodeOptions = {}): SearchHit[] {
+export function searchCode(
+  db: Database,
+  query: string,
+  options: SearchCodeOptions = {},
+): CappedResults<SearchHit> {
   const limit = options.limit ?? SEARCH_CODE_DEFAULT_LIMIT;
   const pathPrefix = options.pathPrefix ?? null;
 
@@ -74,7 +80,7 @@ export function searchCode(db: Database, query: string, options: SearchCodeOptio
       pathPrefix,
       pathPrefix,
       pathPrefix,
-      limit,
+      limit + 1,
     ) as SearchHit[];
-  return rows;
+  return capResults(rows, limit);
 }

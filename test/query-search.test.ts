@@ -2,7 +2,7 @@ import type { Database } from "better-sqlite3";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { graphHooks } from "../src/graph/hooks";
 import { runPipeline } from "../src/pipeline/run";
-import { searchCode } from "../src/query/search";
+import { searchCode as searchCodeCapped, SearchCodeOptions } from "../src/query/search";
 import { openDatabase } from "../src/storage/database";
 import { runMigrations } from "../src/storage/migrations";
 import { buildFixtureRepo, FixtureRepo } from "./helpers/fixtures";
@@ -10,6 +10,9 @@ import { buildFixtureRepo, FixtureRepo } from "./helpers/fixtures";
 describe("search_code / FTS5 (FR-401)", () => {
   let repo: FixtureRepo;
   let db: Database;
+  // Row-content assertions live here; truncation reporting is QA-404's.
+  const searchCode = (database: Database, query: string, options?: SearchCodeOptions) =>
+    searchCodeCapped(database, query, options).results;
 
   beforeEach(() => {
     repo = buildFixtureRepo({ git: false });

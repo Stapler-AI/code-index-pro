@@ -1276,7 +1276,7 @@ nodes:
     title: "Caps & truncation"
     type: dev
     milestone: M4
-    status: in_progress
+    status: done
     implements: [FR-404]
     depends_on: [DEV-403]
     verified_by: QA-404
@@ -1291,7 +1291,7 @@ nodes:
     title: "Tests: caps honored"
     type: qa
     milestone: M4
-    status: pending
+    status: done
     implements: ["FR-404 acceptance"]
     depends_on: [DEV-404, QA-000]
     scope: >-
@@ -1303,7 +1303,7 @@ nodes:
     title: "Review: Caps & truncation"
     type: rev
     milestone: M4
-    status: pending
+    status: approved
     implements: ["Review gate for FR-404"]
     depends_on: [DEV-404, QA-404]
     done_when: "Review approved with no unresolved findings."
@@ -1312,7 +1312,7 @@ nodes:
     title: "Milestone gate: Query layer"
     type: gate
     milestone: M4
-    status: pending
+    status: approved
     depends_on: [REV-401, REV-402, REV-403, REV-404]
     done_when: "All M4 REV nodes approved."
 
