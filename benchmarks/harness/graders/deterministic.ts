@@ -136,6 +136,18 @@ export function workspaceDiff(workspaceDir: string): string {
 /**
  * The resulting workspace tree (tracked + untracked file contents), for
  * must-not-match assertions.
+ *
+ * Two exclusions keep index/binary artifacts from polluting the tree scan
+ * without weakening real source-file straggler detection (SK-D16):
+ *  - Any path under a `.code-index/` directory. A with-arm agent that calls the
+ *    MCP `reindex` tool makes the server write `.code-index/index.db` (+ `-wal`),
+ *    which is untracked and NOT gitignored. Those SQLite pages retain the OLD
+ *    symbol name in stale/WAL content, so a correct rename would false-positive
+ *    a must-not-match (e.g. /\bmakeByteOffset\b/) against the DB, not the source.
+ *  - Any file that is not valid UTF-8 text (binary). Defense in depth: reading a
+ *    binary DB as "utf8" yields a lossy string a regex can still match; skipping
+ *    binaries means only real text sources are ever scanned. A leftover straggler
+ *    in an actual `.ts`/`.js`/etc. source is still text and still trips the check.
  */
 export function workspaceContent(workspaceDir: string): string {
   const run = (...args: string[]): string =>
@@ -143,10 +155,29 @@ export function workspaceContent(workspaceDir: string): string {
   const files = [
     ...run("ls-files").split("\n"),
     ...run("ls-files", "--others", "--exclude-standard").split("\n"),
-  ].filter((l) => l.length > 0);
+  ]
+    .filter((l) => l.length > 0)
+    .filter((f) => !f.startsWith(".code-index/") && !f.includes("/.code-index/"));
   return files
-    .map((file) => `=== ${file} ===\n${readFileSync(join(workspaceDir, file), "utf8")}`)
+    .map((file) => {
+      const buf = readFileSync(join(workspaceDir, file));
+      if (isBinary(buf)) return null;
+      return `=== ${file} ===\n${buf.toString("utf8")}`;
+    })
+    .filter((s): s is string => s !== null)
     .join("\n");
+}
+
+/**
+ * Heuristic binary detector: a file is treated as binary if it contains a NUL
+ * byte or cannot round-trip through UTF-8 decode/encode (i.e. holds invalid
+ * UTF-8 sequences). Source files never contain NUL, so this excludes only real
+ * binaries (e.g. the SQLite index DB) — never a text source that must still be
+ * scanned for stragglers.
+ */
+function isBinary(buf: Buffer): boolean {
+  if (buf.includes(0)) return true;
+  return Buffer.compare(Buffer.from(buf.toString("utf8"), "utf8"), buf) !== 0;
 }
 
 /**

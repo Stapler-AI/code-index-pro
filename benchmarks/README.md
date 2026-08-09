@@ -57,6 +57,20 @@ The headline comparison is `with-skill / without` within one agent; `with / with
 and `with-skill / with` are reported alongside so the tool and skill contributions
 are separable.
 
+### Codex cost model (measured)
+
+Per the audited validation run ([results/2026-08-08-codex-tier2.md](results/2026-08-08-codex-tier2.md)):
+codex re-bills its context per tool round-trip plus a fixed per-step tax (MCP tool schemas +
+`AGENTS.md`), so its `with-skill` arm carries a structural ~1.5× overhead on small tasks that
+content edits cannot remove — tokens are bought back only where the index replaces many baseline
+calls. Measured with the tier-2 cost-gated `AGENTS.md`: renames run below no-skill parity
+(0.83–0.97×, zero MCP calls via the grep-centric chain); callers/impact tasks pay ~2.1–2.5×
+tokens for large correctness gains (+0.57/+0.73); cheap tasks carry the ~1.56× structural tax
+(identical to the tier-1 control). Pooled with-skill/without = 1.16 on the validation mix — for
+codex the index is a correctness tool that is approximately cost-neutral in aggregate, not a
+token saver on small tasks. `rr-self-discoverfiles-001` + `ci-self-openhealthy-callers-001` are
+the standing deterministic regression pair for future `AGENTS.md` edits.
+
 **Targets** (`targets.ts`) — what the agent works on. Every run gets a fresh
 temp-dir copy with its own `.git` (so edit-tier diff checks work):
 

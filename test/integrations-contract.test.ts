@@ -484,7 +484,9 @@ describe("AGENTS.md budget & structure", () => {
     expect(body).toMatch(/Chain, don't wander/);
     // Callers / impact chain.
     expect(body).toMatch(/who_calls.*impact_of_change/);
-    // Rename chain: reindex then re-query the OLD name to prove zero stragglers.
+    // Rename chain: grep the OLD name end-to-end; a final zero-hit grep proves it
+    // (SK-D19). `reindex` is matched from the body's conditional after-edit line,
+    // not from the rename chain (which now forbids it).
     expect(body).toMatch(/\bRename:/);
     expect(body).toContain("reindex");
     expect(body).toMatch(/\bold\b/);
@@ -567,5 +569,190 @@ describe("SK-Q09 — mutation-coverage extensions (FR-301/302/303)", () => {
     const drifted = [...CATALOG, phantom];
     expect(missingCatalogTools(skill, drifted)).toEqual([phantom]);
     expect(missingCatalogTools(agents, drifted)).toEqual([phantom]);
+  });
+});
+
+// ── SK-Q17 — AGENTS.md anti-wander guidance lock (SK-D17 regression guard) ────
+// Owned by SK-Q17 (separate from the SK-D09/SK-Q07/SK-Q08/SK-Q09 blocks above).
+// SK-D17 shipped four anti-wander edits to the always-loaded Codex AGENTS.md that
+// the existing SK-Q08 budget assertions match only through loose regexes — so a
+// silent revert of the NEW content would leave SK-Q08 green. These KEYWORD-level
+// assertions pin the specific anti-wander guidance: they tolerate minor rewording
+// but fail if any of the four devices is removed. Reuses SK-Q08's header-split so
+// they read the same ≤ 40-line body, not the provenance header.
+
+describe("AGENTS.md anti-wander guidance (SK-Q17 / SK-D17 lock)", () => {
+  const raw = readArtifact(ARTIFACTS.agents.path);
+
+  // Same leading-header strip as SK-Q08: assertions target the routing/contract
+  // BODY, never the provenance comment header at the top of the file.
+  function splitHeader(text: string): { header: string; body: string } {
+    const m = /^\s*<!--[\s\S]*?-->/.exec(text);
+    expect(m).not.toBeNull();
+    const header = (m as RegExpExecArray)[0];
+    const body = text.slice((m as RegExpExecArray).index + header.length);
+    return { header, body };
+  }
+
+  const { body } = splitHeader(raw);
+
+  it("makes the callers chain TERMINAL: answer from who_calls, don't re-verify (edit 1)", () => {
+    // The callers/impact chain must instruct answering FROM who_calls' result and
+    // NOT re-verifying with another tool. Keyword: an "answer … don't re-verify"
+    // instruction anchored on who_calls being the caller set itself.
+    expect(body).toMatch(/who_calls`?\s+IS\s+the\s+caller\s+set/i);
+    expect(body).toMatch(/don't\s+re-verify|don't\s+re-run|answer\s+from\s+it/i);
+    // The forbidden re-verification devices are named so removing the prohibition
+    // (not just the phrasing) fails: a second who_calls / search_code / grep.
+    expect(body).toMatch(/second\s+`?who_calls`?/i);
+    expect(body).toMatch(/search_code/);
+    expect(body).toMatch(/\bgrep\b/i);
+  });
+
+  it("keeps the unresolved_edges carve-out alongside the anti-wander rule (edit 1)", () => {
+    // The corroboration device must COEXIST with the terminal-answer rule: answer
+    // directly UNLESS unresolved_edges is high (then widen once). If SK-D17's edit
+    // dropped the carve-out, the tool would over-trust an incomplete graph.
+    expect(body).toContain("unresolved_edges");
+    // The carve-out is a conditional widen ("unless … high", "then widen"),
+    // not an unconditional stop.
+    expect(body).toMatch(/unless[\s\S]{0,40}unresolved_edges[\s\S]{0,40}high|unresolved_edges[\s\S]{0,20}high/i);
+    expect(body).toMatch(/widen/i);
+  });
+
+  it("Rule 5 forbids a repeat/bigger search_code with the uncached-token cost (edit 2)", () => {
+    // Rule 5 was widened to forbid re-issuing a repeat OR bigger search_code (and a
+    // second who_calls / grep "to be sure"). Pin both the repeat/bigger keyword and
+    // that it is search_code being demoted.
+    expect(body).toMatch(/repeat\/bigger|repeat or bigger|bigger `?search_code`?/i);
+    expect(body).toMatch(/repeat[^\n]*`?search_code`?|`?search_code`?[^\n]*bigger/i);
+    // The cost reason: an extra call re-sends context as FRESH / UNCACHED tokens.
+    expect(body).toMatch(/uncached/i);
+    expect(body).toMatch(/fresh[\s\S]{0,20}tokens|re-sends[\s\S]{0,60}tokens/i);
+  });
+
+  it("search_code routing warns against raw FTS punctuation (edit 3)", () => {
+    // The search_code routing row carries an FTS5 punctuation warning so callers
+    // don't feed it query syntax that errors. Keyword: FTS5 + "no raw" + the parens
+    // / colon that error.
+    expect(body).toMatch(/FTS5?/);
+    expect(body).toMatch(/no raw/i);
+    // The specific characters that error must be called out.
+    expect(body).toContain("(");
+    expect(body).toContain(")");
+    expect(body).toContain(":");
+    expect(body).toMatch(/error/i);
+  });
+
+  it("index_status opener is SCOPED — skippable for a single known-symbol lookup (edit 4)", () => {
+    // The opener no longer mandates index_status unconditionally: it may be skipped
+    // to go straight to find_symbol for one known-symbol lookup. Keyword: a "skip"
+    // escape hatch tied to a single find_symbol lookup.
+    expect(body).toMatch(/skip it|skip `?index_status`?/i);
+    expect(body).toMatch(/go straight to `?find_symbol`?/i);
+    expect(body).toMatch(/single[\s\S]{0,30}lookup|single known-symbol/i);
+  });
+});
+
+// ── SK-Q19 — AGENTS.md cost-gate & grep-rename lock (SK-D19 regression guard) ─
+// Owned by SK-Q19 (separate from the blocks above). SK-D19's tier-2 rewrite added
+// a cost gate to the intro, re-scoped Rule 3, made the rename chain grep-centric
+// (no reindex step), and made reindex conditional. SK-Q08/SK-Q17's loose regexes
+// would stay green if any of these silently reverted to the tier-1 phrasing —
+// e.g. SK-Q08's `toContain("reindex")` passes on both the old chain-step reindex
+// and the new conditional line. These keyword pins tolerate minor rewording but
+// fail on removal, and the final case proves each pin dies on the committed
+// tier-1 phrasing (in-memory fixture only — the shipped file is never touched).
+
+describe("AGENTS.md cost-gate & grep-rename (SK-Q19 / SK-D19 lock)", () => {
+  const raw = readArtifact(ARTIFACTS.agents.path);
+
+  // Same leading-header strip as SK-Q08/SK-Q17: assertions target the body,
+  // never the provenance comment header at the top of the file.
+  function splitHeader(text: string): { header: string; body: string } {
+    const m = /^\s*<!--[\s\S]*?-->/.exec(text);
+    expect(m).not.toBeNull();
+    const header = (m as RegExpExecArray)[0];
+    const body = text.slice((m as RegExpExecArray).index + header.length);
+    return { header, body };
+  }
+
+  const { body } = splitHeader(raw);
+
+  // The Rename bullet, from its bold label to end-of-body (it closes the file).
+  // Scoping the rename pins to the bullet keeps the no-reindex negative from
+  // false-firing on reindex mentions elsewhere in the body.
+  function renameBullet(text: string): string {
+    const m = /\*\*Rename:\*\*[\s\S]*$/.exec(text);
+    expect(m).not.toBeNull();
+    return (m as RegExpExecArray)[0];
+  }
+
+  it("intro carries the cost gate: fewest-total-calls plan, index-vs-direct, gate decides", () => {
+    // Every-call-recosts framing resolved into a plan rule: fewest total calls.
+    expect(body).toMatch(/fewest total calls/i);
+    // Index earns its call by replacing many greps/reads…
+    expect(body).toMatch(/replaces many greps/i);
+    // …and the direct path stays open when one Grep / ranged Read settles it.
+    expect(body).toMatch(/do that\s+directly/i);
+    // The intro's closing contract: the table matches shapes, the GATE decides.
+    expect(body).toMatch(/gate decides/i);
+  });
+
+  it("Rule 3 is scoped to symbols the index ALREADY resolved, not a blanket Grep ban", () => {
+    // Tier-1 read "Never Grep for a symbol name — find_symbol/who_calls already
+    // resolve it" (a blanket ban that outlaws the grep-centric rename chain).
+    // Tier-2 scopes the ban to re-buying an answer the index already returned.
+    expect(body).toMatch(/Never Grep for a symbol name[\s\S]{0,40}the index already resolved/i);
+  });
+
+  it("rename chain is grep-centric: grep old name → edit → zero-hit grep, NO reindex step", () => {
+    const bullet = renameBullet(body);
+    // Grep drives the chain: enumerate sites by grepping the old name…
+    expect(bullet).toMatch(/grep the old name/i);
+    // …and a final zero-hit grep is the proof of completion.
+    expect(bullet).toMatch(/zero[\s\S]{0,5}hits/i);
+    // The chain explicitly disclaims reindex ("no `reindex`").
+    expect(bullet).toMatch(/no\s+\*{0,2}`?reindex/i);
+    // And reindex must not reappear as a chain STEP (tier-1's "→ `reindex {}`").
+    expect(bullet).not.toMatch(/→\s*\*{0,2}`?reindex/);
+  });
+
+  it("reindex is conditional — only if querying continues, never a closing step", () => {
+    // Tier-1's unconditional "call `reindex {}` before trusting graph answers"
+    // became a conditional: only if you will keep querying the graph.
+    expect(body).toMatch(/reindex[^\n]*only if/i);
+    expect(body).toMatch(/never as a closing step/i);
+  });
+
+  it("mutation: every pin above fails on the committed tier-1 phrasing (revert detector)", () => {
+    // The four regions SK-D19 rewrote, reconstructed VERBATIM from the committed
+    // tier-1 file (`git show HEAD:integrations/codex/AGENTS.md`). In-memory
+    // fixture only.
+    const tier1 = [
+      "The `code-index` MCP tools answer structural questions in tens of tokens instead",
+      "of the thousands that grep-and-read costs. Prefer them over Grep/Read whenever the",
+      "question below matches; the baseline tools stay available for everything else.",
+      "3. Never Grep for a symbol name — `find_symbol`/`who_calls` already resolve it.",
+      "After editing files, call `reindex {}` before trusting graph answers.",
+      "- **Rename:** `find_symbol` → `impact_of_change` → edit every site → `reindex {}` →",
+      "  re-run `who_calls`/`search_code` on the old name to prove zero stragglers.",
+    ].join("\n");
+    // Cost-gate pins die (tier-1 intro has no gate).
+    expect(tier1).not.toMatch(/fewest total calls/i);
+    expect(tier1).not.toMatch(/replaces many greps/i);
+    expect(tier1).not.toMatch(/do that\s+directly/i);
+    expect(tier1).not.toMatch(/gate decides/i);
+    // Rule-3 scope pin dies (tier-1 rule is the blanket ban).
+    expect(tier1).not.toMatch(/Never Grep for a symbol name[\s\S]{0,40}the index already resolved/i);
+    // Rename pins die: the tier-1 bullet exists but is index/reindex-centric.
+    const bullet = renameBullet(tier1);
+    expect(bullet).not.toMatch(/grep the old name/i);
+    expect(bullet).not.toMatch(/no\s+\*{0,2}`?reindex/i);
+    // …and the reindex-as-chain-step NEGATIVE fires (arrow into reindex present).
+    expect(bullet).toMatch(/→\s*\*{0,2}`?reindex/);
+    // Conditional-reindex pins die (tier-1 form is unconditional).
+    expect(tier1).not.toMatch(/reindex[^\n]*only if/i);
+    expect(tier1).not.toMatch(/never as a closing step/i);
   });
 });

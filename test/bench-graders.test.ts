@@ -157,6 +157,109 @@ describe("edit-tier grader (DEV-902 / QA-902)", () => {
   });
 });
 
+describe("must-not-match tree exclusions (SK-D16 / SK-Q16)", () => {
+  let workspace: string;
+  afterEach(() => rmSync(workspace, { recursive: true, force: true }));
+
+  /**
+   * A tiny committed git workspace seeded with the OLD name, then renamed to
+   * newName in-place — so the diff carries the must-match token, exactly like
+   * the passing rename case above. Caller adds index/binary artifacts after.
+   */
+  function seedRenamedWorkspace(): string {
+    const dir = mkdtempSync(join(tmpdir(), "bench-skd16-"));
+    const git = (...args: string[]) => execFileSync("git", args, { cwd: dir, stdio: "pipe" });
+    writeFileSync(join(dir, "lib.js"), `function oldName() { return 7 }\nmodule.exports = { oldName };\n`);
+    writeFileSync(
+      join(dir, "check.js"),
+      `const { oldName } = require('./lib');\nif (oldName() !== 7) process.exit(1);\n`,
+    );
+    git("init", "-q");
+    git("config", "user.email", "bench@test.invalid");
+    git("config", "user.name", "Bench");
+    git("add", "-A");
+    git("commit", "-q", "-m", "seed");
+    // Perform the correct rename (produces a diff with newName, no oldName in source).
+    writeFileSync(join(dir, "lib.js"), `function newName() { return 7 }\nmodule.exports = { newName };\n`);
+    writeFileSync(
+      join(dir, "check.js"),
+      `const { newName } = require('./lib');\nif (newName() !== 7) process.exit(1);\n`,
+    );
+    return dir;
+  }
+
+  const RENAME_GRADER = {
+    kind: "test-diff" as const,
+    testCommand: ["node", "check.js"],
+    mustMatch: ["newName"],
+    mustNotMatch: ["\\boldName\\b"],
+  };
+
+  it("exclusion: forbidden token only inside .code-index/ does NOT trip must-not-match", () => {
+    workspace = seedRenamedWorkspace();
+    // The ONLY occurrence of oldName lives under .code-index/ (untracked, not gitignored).
+    // Write it as raw bytes to mimic a SQLite DB whose stale pages hold the old name.
+    execFileSync("mkdir", ["-p", join(workspace, ".code-index")]);
+    writeFileSync(join(workspace, ".code-index", "index.db"), Buffer.from("SQLite\noldName\nstale\n", "utf8"));
+    const result = gradeEdit(workspace, RENAME_GRADER);
+    expect(result.score).toBe(1);
+    expect(result.notes).toEqual([]);
+  });
+
+  it("exclusion: forbidden token inside a nested .code-index/ dir is also skipped", () => {
+    workspace = seedRenamedWorkspace();
+    execFileSync("mkdir", ["-p", join(workspace, "pkg", ".code-index")]);
+    writeFileSync(join(workspace, "pkg", ".code-index", "shard.db"), Buffer.from("oldName held here\n", "utf8"));
+    const result = gradeEdit(workspace, RENAME_GRADER);
+    expect(result.score).toBe(1);
+    expect(result.notes).toEqual([]);
+  });
+
+  it("exclusion: a binary file (NUL byte + forbidden token) is skipped", () => {
+    workspace = seedRenamedWorkspace();
+    // Binary artifact NOT under .code-index/ — excluded by the NUL-byte heuristic alone.
+    writeFileSync(
+      join(workspace, "artifact.bin"),
+      Buffer.concat([Buffer.from("oldName"), Buffer.from([0x00]), Buffer.from("tail")]),
+    );
+    const result = gradeEdit(workspace, RENAME_GRADER);
+    expect(result.score).toBe(1);
+    expect(result.notes).toEqual([]);
+  });
+
+  it("over-exclusion control: forbidden token in a REAL source file STILL trips must-not-match", () => {
+    workspace = seedRenamedWorkspace();
+    // A genuine straggler in a text .ts source must not be silently excused by the fix.
+    writeFileSync(join(workspace, "src-foo.ts"), `export const alias = oldName;\n`);
+    const result = gradeEdit(workspace, RENAME_GRADER);
+    expect(result.score).toBe(0);
+    expect(result.notes.some((n) => n.includes("must-not-match"))).toBe(true);
+  });
+
+  it("over-exclusion control: a source file merely NAMED .code-index.ts is still scanned", () => {
+    workspace = seedRenamedWorkspace();
+    // Only a `.code-index/` DIRECTORY segment is excluded — not a filename substring.
+    writeFileSync(join(workspace, "my.code-index.ts"), `export const alias = oldName;\n`);
+    const result = gradeEdit(workspace, RENAME_GRADER);
+    expect(result.score).toBe(0);
+    expect(result.notes.some((n) => n.includes("must-not-match"))).toBe(true);
+  });
+
+  it("real-bug mirror: correct rename + .code-index/ DB holding the old name → passes", () => {
+    workspace = seedRenamedWorkspace();
+    // Source is a fully-correct rename (seed renamed oldName -> newName); the only
+    // remaining oldName is inside the index DB the agent's reindex wrote.
+    execFileSync("mkdir", ["-p", join(workspace, ".code-index")]);
+    writeFileSync(
+      join(workspace, ".code-index", "index.db"),
+      Buffer.concat([Buffer.from("SQLite format 3\x00pages "), Buffer.from([0x00]), Buffer.from("oldName\x00")]),
+    );
+    writeFileSync(join(workspace, ".code-index", "index.db-wal"), Buffer.from("wal\x00oldName\x00stale"));
+    const result = gradeEdit(workspace, RENAME_GRADER);
+    expect(result).toEqual({ score: 1, notes: [] });
+  });
+});
+
 describe("no network in any grader path (QA-902)", () => {
   it("the grader module imports only node builtins and local files", () => {
     const source = readFileSync(
